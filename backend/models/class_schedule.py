@@ -1,18 +1,23 @@
 from beanie import Document
-from pydantic import BaseModel, Field
-from typing import List
+from pydantic import Field
+from typing import Literal, Optional
+from datetime import time, datetime
+from pymongo import IndexModel, ASCENDING
 
-class ScheduleItem(BaseModel):
-    subject: str
-    day: str
-    start_time: str
-    end_time: str
-    room: str
+Day = Literal["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
 
 class Schedule(Document):
-    section: str
-    adviser_id: str  
-    schedule: List[ScheduleItem]
+    section: str = Field(index=True)
+    subject: str
+    teacher_name: str
+    day: Day
+    start_time: time
+    end_time: time
+    room: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Settings:
-        name = "schedules"
+        name = "class_schedules"
+        indexes = [
+            IndexModel([("section", ASCENDING), ("day", ASCENDING), ("start_time", ASCENDING)]),
+        ]
