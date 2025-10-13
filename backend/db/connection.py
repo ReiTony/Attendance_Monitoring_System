@@ -13,11 +13,11 @@ def get_db():
     return db
 
 async def init_db():
-    from models.user import User
+    from models.user import Teacher, Student
     from models.attendance import Attendance
     from models.class_schedule import Schedule
 
     await init_beanie(
         database=db,
-        document_models=[User, Attendance, Schedule]
+        document_models=[Teacher, Student, Attendance, Schedule]
     )
