@@ -5,8 +5,8 @@ import uvicorn
 import os
 
 from api.auth_route import router as auth_route
-#from api.students_route import router as students_route
-#from api.attendance_route import router as attendance_route
+from api.students_route import router as students_route
+from api.attendance_route import router as attendance_route
 
 from db.connection import init_db
 
@@ -32,9 +32,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth_route, prefix="/auth", tags=["Authentication"])
-#app.include_router(students_route, prefix="/students", tags=["Students"])
-#app.include_router(attendance_route, prefix="/attendance", tags=["Attendance"])
+app.include_router(auth_route, prefix="/teacher", tags=["Teacher"])
+app.include_router(students_route, prefix="/students", tags=["Students"])
+app.include_router(attendance_route, prefix="/attendance", tags=["Attendance"])
 
 @app.get("/")
 async def root():
