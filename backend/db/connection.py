@@ -16,8 +16,10 @@ async def init_db():
     from models.user import Teacher, Student
     from models.attendance import Attendance
     from models.class_schedule import Schedule
+    from models.subject_attendance import SubjectAttendance
+
 
     await init_beanie(
         database=db,
-        document_models=[Teacher, Student, Attendance, Schedule]
+        document_models=[Teacher, Student, Attendance, Schedule, SubjectAttendance]
     )
