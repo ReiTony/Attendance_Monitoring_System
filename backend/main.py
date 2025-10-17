@@ -4,16 +4,19 @@ from contextlib import asynccontextmanager
 import uvicorn
 import os
 from pymongo import MongoClient
+from dotenv import load_dotenv
 
 from api.auth_route import router as auth_route
 from api.students_route import router as students_route
 from api.attendance_route import router as attendance_route
+from api.class_report import router as class_report_route
+
+load_dotenv()
 
 from db.connection import init_db
 
 MONGODB_URI = os.getenv(
-    "MONGODB_URI",
-    "mongodb+srv://antoniocarino_db_user:QW81AfzTCAeOC9Cg@attendance.ap2uhos.mongodb.net/?retryWrites=true&w=majority&appName=Attendance"
+    "MONGODB_URI"
 )
 
 @asynccontextmanager
@@ -41,6 +44,7 @@ app.add_middleware(
 app.include_router(auth_route, prefix="/teacher", tags=["Teacher"])
 app.include_router(students_route, prefix="/students", tags=["Students"])
 app.include_router(attendance_route, prefix="/attendance", tags=["Attendance"])
+app.include_router(class_report_route, prefix="/reports", tags=["Reports"])
 
 @app.on_event("startup")
 def startup_event():

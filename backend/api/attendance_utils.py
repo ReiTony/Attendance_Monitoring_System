@@ -4,11 +4,11 @@ import os
 from pymongo import MongoClient, errors
 from bson import ObjectId
 from fastapi import Request, HTTPException
+from dotenv import load_dotenv
 
-MONGODB_URI = os.getenv(
-    "MONGODB_URI",
-    "mongodb+srv://antoniocarino_db_user:QW81AfzTCAeOC9Cg@attendance.ap2uhos.mongodb.net/?retryWrites=true&w=majority&appName=Attendance"
-)
+load_dotenv()
+
+MONGODB_URI = os.getenv("MONGO_URI")
 DB_NAME = "attendance_system"
 COL_NAME = "subject_attendance"
 
@@ -86,51 +86,121 @@ def ensure_dt(v: Any) -> Optional[datetime.datetime]:
             return None
     return None
 
+LATES_FOR_ABSENCE = 3
+
+def check_and_convert_lates_to_absence(db, student, subject):
+    """
+    Checks if a student has accumulated enough lates for a subject to be marked absent.
+    If so, it flags the lates as converted and updates the latest record to 'Absent'.
+    """
+    att_col = db["subject_attendance"]
+    
+    # --- THIS IS THE FIX ---
+    # Use the student's string ID number from the 'student_id_no' field.
+    student_id_str = student.get("student_id_no")
+    if not student_id_str:
+        print(f"WARNING: Could not run late conversion for student {student.get('_id')} because they are missing 'student_id_no'.")
+        return False
+
+    # 1. Find all 'Late' records for this student and subject that have NOT been converted yet.
+    late_filter = {
+        "student_id": student_id_str, # Query with the correct string ID
+        "subject": subject,
+        "late": True,
+        "converted_to_absence": {"$ne": True}
+    }
+    unconverted_lates = list(att_col.find(late_filter).sort("lesson_date", 1))
+
+    # 2. If the number of unconverted lates reaches the threshold...
+    if len(unconverted_lates) >= LATES_FOR_ABSENCE:
+        print(f"Found {len(unconverted_lates)} unconverted lates for student {student_id_str}. Triggering absence conversion.")
+        
+        records_to_convert = unconverted_lates[:LATES_FOR_ABSENCE]
+        ids_to_convert = [rec["_id"] for rec in records_to_convert]
+        triggering_record_id = ids_to_convert[-1]
+
+        # 3. Update the triggering record to be an 'Absent' record.
+        att_col.update_one(
+            {"_id": triggering_record_id},
+            {
+                "$set": {
+                    "status": "Absent",
+                    "remarks": f"Automatically converted from {LATES_FOR_ABSENCE} lates."
+                }
+            }
+        )
+
+        # 4. Mark all the used late records as 'converted'.
+        att_col.update_many(
+            {"_id": {"$in": ids_to_convert}},
+            {"$set": {"converted_to_absence": True}}
+        )
+        
+        return True # Indicate that a conversion happened
+        
+    return False # No conversion happened
 
 def student_canonical_id(student: Dict[str, Any]) -> str:
     return student.get("student_id_no") or str(student.get("_id"))
 
 
 def build_attendance_filter(student: Dict[str, Any], lesson_date: str, subject: str) -> Dict[str, Any]:
-    student_id_str = student_canonical_id(student)
-    or_clauses = [{"student_id": student_id_str}]
-    if isinstance(student.get("_id"), ObjectId):
-        or_clauses.append({"student_id": student.get("_id")})
-    return {"lesson_date": lesson_date, "subject": subject, "$or": or_clauses}
+    student_id_str = student.get("student_id_no")
+    if not student_id_str:
+        # This error is important for data integrity.
+        # It means you scanned a card for a student who doesn't have a student ID number.
+        student_object_id = student.get("_id")
+        raise ValueError(f"Student with _id '{student_object_id}' is missing the 'student_id_no' field.")
+    return {
+        "student_id": student_id_str, # Store and query by ObjectId
+        "lesson_date": lesson_date,
+        "subject": subject,
+    }
 
 
-def recompute_flags_and_update(att_col, doc_filter: Dict[str, Any], start_time: Any, end_time: Any) -> None:
-    try:
-        doc = att_col.find_one(doc_filter)
-        if not doc:
-            return
-        sched_start = ensure_dt(start_time)
-        sched_end = ensure_dt(end_time)
-        time_in_dt = ensure_dt(doc.get("time_in"))
-        time_out_dt = ensure_dt(doc.get("time_out"))
+def recompute_flags_and_update(db, filt, start_time, end_time, student, subject):
+    """
+    Recomputes flags like 'late' and 'left_early' based on the current record state.
+    Also triggers the logic to convert lates to absences.
+    """
+    att_col = db["subject_attendance"]
+    doc = att_col.find_one(filt)
+    if not doc:
+        return
 
-        late_flag = False
-        left_early_flag = False
+    update_doc = {}
+    is_late = False
 
-        if time_in_dt and sched_start:
-            late_flag = time_in_dt > sched_start
-        if time_out_dt and sched_end:
-            left_early_flag = time_out_dt < sched_end
+    
 
-        status_val = "Late" if late_flag else doc.get("status", "Present")
+    # Calculate 'late' flag
+    if doc.get("time_in"):
+        time_in_dt = ensure_dt(doc["time_in"])
+        late_threshold = ensure_dt(start_time) + datetime.timedelta(minutes=10)
+        if time_in_dt > late_threshold:
+            is_late = True
+    update_doc["late"] = is_late
 
-        updates = {}
-        if doc.get("late") != late_flag:
-            updates["late"] = late_flag
-        if doc.get("left_early") != left_early_flag:
-            updates["left_early"] = left_early_flag
-        if doc.get("status") != status_val:
-            updates["status"] = status_val
-        if updates:
-            updates["updated_at"] = datetime.datetime.utcnow()
-            att_col.update_one({"_id": doc["_id"]}, {"$set": updates})
-    except Exception:
-        # keep behavior tolerant to failures
+    if doc.get("status") != "Absent":
+        update_doc["status"] = "Late" if is_late else "Present"
+
+    # Calculate 'left_early' flag
+    if doc.get("time_out"):
+        time_out_dt = ensure_dt(doc["time_out"])
+        if time_out_dt < ensure_dt(end_time):
+            update_doc["left_early"] = True
+        else:
+            update_doc["left_early"] = False
+
+    
+    if update_doc:
+        att_col.update_one(filt, {"$set": update_doc})
+
+    # --- NEW LOGIC INTEGRATION ---
+    # If this tap-in resulted in a 'late' status, check if it triggers an absence.
+    if is_late:
+        check_and_convert_lates_to_absence(db, student, subject)
+
         return
 
 

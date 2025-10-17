@@ -45,6 +45,11 @@ async def fix_schedules():
         {"section": "ICT12A", "subject": "SP-ICT5 (CSS)", "teacher_name": "TBA", "day": "Thu", "start_time": time(10, 0), "end_time": time(11, 0), "room": "211"},
         {"section": "ICT12A", "subject": "CTDRL2 (Research)", "teacher_name": "TBA", "day": "Thu", "start_time": time(12, 0), "end_time": time(13, 30), "room": "211"},
         {"section": "ICT12A", "subject": "CSENG2", "teacher_name": "TBA", "day": "Thu", "start_time": time(14, 30), "end_time": time(16, 0), "room": "211"},
+
+        # FRIDAY - test
+        {"day": "Fri", "subject": "Free Period1", "start_time": time(7, 0), "end_time": time(10, 0)},
+        {"day": "Fri", "subject": "Free Period2", "start_time": time(14, 30), "end_time": time(14, 50)},
+        {"day": "Fri", "subject": "Free Period3", "start_time": time(14, 55), "end_time": time(15, 15)},
     ]
     
     print("Inserting new schedules...")

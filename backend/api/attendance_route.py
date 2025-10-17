@@ -46,49 +46,65 @@ async def rfid_tap(rfid_uid: str = Query(..., description="RFID UID"), request: 
     if not student:
         raise HTTPException(status_code=404, detail="RFID not found")
 
-    # find schedule for student's section matching today's weekday and current time
     now_dt = datetime.datetime.now(datetime.timezone.utc)
-    weekday_short = now_dt.strftime("%a")  # "Fri"
+    weekday_short = now_dt.strftime("%a")
     section = student.get("section")
+    
+    sched_filt = {"section": section, "day": weekday_short}
+    schedules_from_db = schedules_col.find(sched_filt)
 
-    sched_filt = {"section": section, "day": {"$regex": weekday_short, "$options": "i"}}
-    schedule = schedules_col.find_one(sched_filt)
+    active_schedule = None
+    
+    for schedule_doc in schedules_from_db:
+        start_time_from_db = schedule_doc.get("start_time")
+        end_time_from_db = schedule_doc.get("end_time")
 
-    if not schedule:
-        raise HTTPException(status_code=400, detail=f"No class is currently in session for section {section} on {weekday_short}")
+        if isinstance(start_time_from_db, datetime.datetime) and isinstance(end_time_from_db, datetime.datetime):
+            
+            # --- THE DEFINITIVE FIX IS HERE ---
 
-    # if schedule has explicit start/end datetimes, ensure now is inside
-    start_time = schedule.get("start_time")
-    end_time = schedule.get("end_time")
-    try:
-        if isinstance(start_time, datetime.datetime) and isinstance(end_time, datetime.datetime):
-            if not (start_time <= now_dt <= end_time):
-                raise HTTPException(status_code=400, detail="No class is currently in session.")
-    except HTTPException:
-        raise
-    except Exception:
-        pass  # ignore comparison issues; proceed
+            # 1. Extract just the TIME component from the schedule's stored datetime.
+            schedule_start_time = start_time_from_db.time()
+            schedule_end_time = end_time_from_db.time()
+            
+            # 2. Get TODAY's DATE component from the current time.
+            today_date_utc = now_dt.date()
+            
+            # 3. Combine TODAY's DATE with the schedule's TIME to create a comparable datetime.
+            start_dt_today = datetime.datetime.combine(today_date_utc, schedule_start_time)
+            end_dt_today = datetime.datetime.combine(today_date_utc, schedule_end_time)
 
-    subject = schedule.get("subject")
+            # 4. Make these new datetimes timezone-aware (they are in UTC).
+            start_dt_today_aware = start_dt_today.replace(tzinfo=datetime.timezone.utc)
+            end_dt_today_aware = end_dt_today.replace(tzinfo=datetime.timezone.utc)
+            
+            # 5. Handle potential overnight classes (where end time is on the next day).
+            if end_dt_today_aware < start_dt_today_aware:
+                end_dt_today_aware += datetime.timedelta(days=1)
+
+            # 6. Now we are comparing apples to apples: today's time vs. today's schedule.
+            if start_dt_today_aware <= now_dt < end_dt_today_aware:
+                active_schedule = schedule_doc
+                break
+
+    if not active_schedule:
+        raise HTTPException(status_code=400, detail=f"No class is currently in session for section '{section}' at this time.")
+
+    # The rest of the function is correct and remains the same.
+    subject = active_schedule.get("subject")
+    start_time = active_schedule.get("start_time")
+    end_time = active_schedule.get("end_time")
     lesson_date = now_dt.date().isoformat()
-    # build filter and inspect existing record to decide action
+    
     filt = build_attendance_filter(student, lesson_date, subject)
     existing = att_col.find_one(filt)
     now_iso = now_iso_z()
-
-    # determine action
     action = "tap_in" if not existing else ("tap_out" if existing.get("time_out") is None else "tap_in")
-
-    # attendance raw logging (tolerant)
     student_id_str = student_canonical_id(student)
     insert_or_update_log(db, student_id_str, student, section, lesson_date, now_iso, action)
-
-    # handle main attendance record (tap in/out/breaks)
     handle_attendance_record(db, student, section, subject, lesson_date, now_dt, now_iso, start_time, end_time)
+    recompute_flags_and_update(db, filt, start_time, end_time, student, subject)
 
-    recompute_flags_and_update(att_col, filt, start_time, end_time)
-
-    # return resulting document
     doc = att_col.find_one(filt)
     if doc and "_id" in doc:
         doc["_id"] = str(doc["_id"]) 
