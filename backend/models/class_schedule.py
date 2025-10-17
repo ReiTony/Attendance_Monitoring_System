@@ -7,9 +7,9 @@ from pymongo import IndexModel, ASCENDING
 Day = Literal["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
 
 class Schedule(Document):
-    section: str = Field(index=True)
-    subject: str
-    teacher_name: str
+    section: str = Field(..., min_length=1, max_length=20, index=True)  
+    subject: str = Field(..., min_length=2)
+    teacher_name: str = Field(..., min_length=2)
     day: Day
     start_time: time
     end_time: time

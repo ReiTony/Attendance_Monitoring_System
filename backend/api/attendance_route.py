@@ -1,4 +1,3 @@
-# routes/attendance_route.py
 from fastapi import APIRouter, HTTPException, status
 from datetime import datetime, timedelta, time
 from models.user import Student
