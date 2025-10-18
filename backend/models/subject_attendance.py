@@ -33,6 +33,8 @@ class SubjectAttendance(Document):
     
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
+    converted_to_absence: bool = Field(default=False)
+
     class Settings:
         # Standard MongoDB naming convention is plural and snake_case.
         name = "subject_attendances"
@@ -51,7 +53,9 @@ class SubjectAttendance(Document):
             IndexModel(
                 [
                     ("student_id", ASCENDING),
-                    ("lesson_date", DESCENDING),
+                    ("subject", ASCENDING),
+                    ("late", DESCENDING),
+                    ("converted_to_absence", ASCENDING),
                 ]
             ),
         ]

@@ -30,6 +30,11 @@ correct_schedules_data = [
     {"day": "Thu", "subject": "SP-ICT5 (CSS)", "start_time": time(10, 0), "end_time": time(11, 0)},
     {"day": "Thu", "subject": "CTDRL2 (Research)", "start_time": time(12, 0), "end_time": time(13, 30)},
     {"day": "Thu", "subject": "CSENG2", "start_time": time(14, 30), "end_time": time(16, 0)},
+    # FRIDAY - test
+    {"day": "Fri", "subject": "Free Period1", "start_time": time(7, 0), "end_time": time(10, 0)},
+    {"day": "Fri", "subject": "Free Period2", "start_time": time(14, 30), "end_time": time(14, 50)},
+    {"day": "Fri", "subject": "Free Period3", "start_time": time(14, 55), "end_time": time(15, 15)},
+
 ]
 
 async def repopulate_data():
