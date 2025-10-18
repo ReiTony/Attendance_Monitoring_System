@@ -125,6 +125,7 @@ def check_and_convert_lates_to_absence(db, student, subject):
             {
                 "$set": {
                     "status": "Absent",
+                    "late": False,
                     "remarks": f"Automatically converted from {LATES_FOR_ABSENCE} lates."
                 }
             }
@@ -133,7 +134,7 @@ def check_and_convert_lates_to_absence(db, student, subject):
         # 4. Mark all the used late records as 'converted'.
         att_col.update_many(
             {"_id": {"$in": ids_to_convert}},
-            {"$set": {"converted_to_absence": True}}
+            {"$set": {"converted_to_absence": True, "late": False}}
         )
         
         return True # Indicate that a conversion happened
@@ -197,11 +198,14 @@ def recompute_flags_and_update(db, filt, start_time, end_time, student, subject)
         att_col.update_one(filt, {"$set": update_doc})
 
     # --- NEW LOGIC INTEGRATION ---
-    # If this tap-in resulted in a 'late' status, check if it triggers an absence.
-    if is_late:
+    # After updating flags, always attempt to convert accumulated lates into absences.
+    # This ensures conversions aren't missed if the most-recent tap wasn't itself flagged late
+    # (for example when records are backfilled or updated).
+    try:
         check_and_convert_lates_to_absence(db, student, subject)
-
-        return
+    except Exception:
+        # don't let conversion failures break the main flow
+        pass
 
 
 def insert_or_update_log(db, student_id_str: str, student: Dict[str, Any], section: str, lesson_date: str, now_iso: str, action: str) -> None:
