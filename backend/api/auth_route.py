@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, status
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 import logging
@@ -11,13 +11,18 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("auth_route")
 router = APIRouter()
 
-# Schemas (request/response) 
+
 class RegisterIn(BaseModel):
     first_name: str = Field(..., min_length=2, max_length=50)
     last_name: str  = Field(..., min_length=2, max_length=50)
     email: EmailStr
     password: str = Field(..., min_length=8)
     section: str = Field(..., min_length=1, max_length=20)
+
+# JSON body for login
+class LoginIn(BaseModel):
+    email: EmailStr
+    password: str
 
 class TeacherOut(BaseModel):
     id: str
@@ -26,10 +31,6 @@ class TeacherOut(BaseModel):
     email: EmailStr
     section: str
     role: str = "teacher"
-
-class TokenOut(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
 
 class LoginResponse(BaseModel):
     access_token: str
@@ -40,7 +41,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/teacher/login")
 
 async def get_current_teacher(token: str = Depends(oauth2_scheme)) -> Teacher:
     try:
-        payload = decode_access_token(token) 
+        payload = decode_access_token(token)
         user_id: Optional[str] = payload.get("sub")
         if not user_id:
             raise HTTPException(status_code=401, detail="Invalid token")
@@ -56,8 +57,6 @@ async def get_current_teacher(token: str = Depends(oauth2_scheme)) -> Teacher:
         raise HTTPException(status_code=401, detail="Could not validate credentials")
 
 
-
-# Routes 
 @router.post("/register", response_model=TeacherOut, status_code=status.HTTP_201_CREATED)
 async def register_user(payload: RegisterIn):
     email = payload.email
@@ -71,8 +70,8 @@ async def register_user(payload: RegisterIn):
         first_name=payload.first_name,
         last_name=payload.last_name,
         email=email,
-        password=hashed_pw,     
-        role="teacher",         
+        password=hashed_pw,
+        role="teacher",
         section=payload.section,
     )
     await teacher.insert()
@@ -87,9 +86,12 @@ async def register_user(payload: RegisterIn):
     )
 
 @router.post("/login", response_model=LoginResponse)
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = await Teacher.find_one(Teacher.email == form_data.username)
-    if not user or not verify_password(form_data.password, user.password):
+async def login(payload: LoginIn):
+    """
+    Authenticate with JSON body: { "email": "...", "password": "..." }
+    """
+    user = await Teacher.find_one(Teacher.email == payload.email)
+    if not user or not verify_password(payload.password, user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token_data = {"sub": str(user.id), "role": user.role}
@@ -107,7 +109,6 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
             role=user.role,
         ),
     )
-
 
 @router.get("/me", response_model=TeacherOut)
 async def get_me(current: Teacher = Depends(get_current_teacher)):
