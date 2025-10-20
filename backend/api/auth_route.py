@@ -1,6 +1,4 @@
-# routes/auth_route.py
 from fastapi import APIRouter, HTTPException, Depends, status
-from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr, Field
 import logging
 
@@ -11,13 +9,20 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("auth_route")
 router = APIRouter()
 
-# Schemas (request/response) 
+# --- Schemas (request/response) ---
+
 class RegisterIn(BaseModel):
     first_name: str = Field(..., min_length=2, max_length=50)
     last_name: str  = Field(..., min_length=2, max_length=50)
     email: EmailStr
     password: str = Field(..., min_length=8)
     section: str = Field(..., min_length=1, max_length=20)
+
+# --- NEW SCHEMA for JSON Login ---
+# This model defines the structure of the JSON body for the login request.
+class LoginIn(BaseModel):
+    email: EmailStr
+    password: str
 
 class TeacherOut(BaseModel):
     id: str
@@ -31,7 +36,8 @@ class TokenOut(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
-# Routes 
+# --- Routes ---
+
 @router.post("/register", response_model=TeacherOut, status_code=status.HTTP_201_CREATED)
 async def register_user(payload: RegisterIn):
     email = payload.email
@@ -60,12 +66,20 @@ async def register_user(payload: RegisterIn):
         role=teacher.role,
     )
 
+# --- UPDATED ROUTE for JSON Login ---
 @router.post("/login", response_model=TokenOut)
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = await Teacher.find_one(Teacher.email == form_data.username)
-    if not user or not verify_password(form_data.password, user.password):
+async def login(payload: LoginIn): # <-- Changed from form_data to a JSON payload
+    """
+    Authenticates a user with an email and password from a JSON body.
+    """
+    # Use payload.email instead of form_data.username
+    user = await Teacher.find_one(Teacher.email == payload.email)
+    
+    # Use payload.password instead of form_data.password
+    if not user or not verify_password(payload.password, user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token_data = {"sub": str(user.id), "role": user.role}
     access_token = create_access_token(data=token_data)
+    
     return TokenOut(access_token=access_token)
