@@ -1,4 +1,3 @@
-# routes/students_route.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from models.user import Student
