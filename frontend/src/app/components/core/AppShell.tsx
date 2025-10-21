@@ -10,7 +10,31 @@ import {
   Stack,
   NavLink,
 } from "@mantine/core";
+import { usePathname } from "next/navigation";
 import { ReactNode, useState } from "react";
+
+const navItemsList = [
+  {
+    id: 1,
+    label: "Class Schedule",
+    route: "/upload",
+  },
+  {
+    id: 2,
+    label: "Attendance Logs",
+    route: "/attendance-logs",
+  },
+  {
+    id: 3,
+    label: "Class Seat Plan",
+    route: "/class-seat-plan",
+  },
+];
+
+const routeChecker = (route: string, currentPath: string) => {
+  if (currentPath.includes(route)) return true;
+  else return false;
+};
 
 const AppShell = ({
   children,
@@ -19,6 +43,7 @@ const AppShell = ({
   children: ReactNode;
   teacher: Teacher;
 }) => {
+  const pathname = usePathname();
   const [opened, setOpened] = useState(false);
 
   return (
@@ -64,9 +89,14 @@ const AppShell = ({
 
         <MAppShell.Section grow>
           <Stack gap={8}>
-            <NavLink label="Class Schedule" active />
-            <NavLink label="Attendance Logs" />
-            <NavLink label="Class Seat Plan" />
+            {navItemsList.map((item) => (
+              <NavLink
+                key={item.id}
+                label={item.label}
+                href={item.route}
+                active={routeChecker(item.route, pathname)}
+              />
+            ))}
           </Stack>
         </MAppShell.Section>
 
