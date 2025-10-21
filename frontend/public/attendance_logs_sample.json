@@ -1,0 +1,72 @@
+[
+  {
+    "student_id": "12345",
+    "student_name": "Gerson Jang",
+    "section": "ICT12A",
+    "total_lates": 5,
+    "total_absences": 1
+  },
+  {
+    "student_id": "12346",
+    "student_name": "Maria Santos",
+    "section": "ICT12A",
+    "total_lates": 2,
+    "total_absences": 0
+  },
+  {
+    "student_id": "12347",
+    "student_name": "Juan Dela Cruz",
+    "section": "ICT12A",
+    "total_lates": 0,
+    "total_absences": 3
+  },
+  {
+    "student_id": "22345",
+    "student_name": "Pedro Penduko",
+    "section": "ICT12B",
+    "total_lates": 7,
+    "total_absences": 2
+  },
+  {
+    "student_id": "22346",
+    "student_name": "Jose Rizal",
+    "section": "ICT12B",
+    "total_lates": 1,
+    "total_absences": 0
+  },
+  {
+    "student_id": "32345",
+    "student_name": "Andres Bonifacio",
+    "section": "ICT11A",
+    "total_lates": 3,
+    "total_absences": 1
+  },
+  {
+    "student_id": "32346",
+    "student_name": "Emilio Aguinaldo",
+    "section": "ICT11A",
+    "total_lates": 4,
+    "total_absences": 2
+  },
+  {
+    "student_id": "42345",
+    "student_name": "Gabriela Silang",
+    "section": "ICT11B",
+    "total_lates": 0,
+    "total_absences": 0
+  },
+  {
+    "student_id": "42346",
+    "student_name": "Lapu-Lapu",
+    "section": "ICT11B",
+    "total_lates": 6,
+    "total_absences": 4
+  },
+  {
+    "student_id": "52345",
+    "student_name": "Melchora Aquino",
+    "section": "ICT10A",
+    "total_lates": 2,
+    "total_absences": 1
+  }
+]
