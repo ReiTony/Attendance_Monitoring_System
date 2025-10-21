@@ -44,5 +44,5 @@ export async function signup(_prev: { message?: string }, formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/home");
+  redirect("/login");
 }
