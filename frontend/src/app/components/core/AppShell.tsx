@@ -17,7 +17,7 @@ const navItemsList = [
   {
     id: 1,
     label: "Class Schedule",
-    route: "/upload",
+    route: "/class-schedules",
   },
   {
     id: 2,
