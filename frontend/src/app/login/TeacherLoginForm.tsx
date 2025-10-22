@@ -40,7 +40,7 @@ export default function TeacherLoginForm() {
     }
 
     setLoading(false);
-    router.push("/home");
+    router.push("/attendance-logs");
   };
 
   return (
