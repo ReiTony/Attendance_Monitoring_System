@@ -35,9 +35,10 @@ class SubjectAttendance(Document):
 
     converted_to_absence: bool = Field(default=False)
 
+    student_name: Optional[str] = None
     class Settings:
         # Standard MongoDB naming convention is plural and snake_case.
-        name = "subject_attendances"
+        name = "subject_attendance"
         indexes = [
             # Compound index for the most common query:
             # "Find all attendance for a specific class on a specific day"
