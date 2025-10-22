@@ -11,7 +11,7 @@ from api.students_route import router as students_route
 from api.attendance_route import router as attendance_route
 from api.class_report import router as class_report_route
 from api.edit_details_route import router as edit_details_route
-
+from api.schedule_route import router as schedule_route
 load_dotenv()
 
 from db.connection import init_db
@@ -47,6 +47,7 @@ app.include_router(students_route, prefix="/students", tags=["Students"])
 app.include_router(attendance_route, prefix="/attendance", tags=["Attendance"])
 app.include_router(class_report_route, prefix="/reports", tags=["Reports"])
 app.include_router(edit_details_route, prefix="/edit", tags=["Edit Details"])
+app.include_router(schedule_route, prefix="/schedule", tags=["Schedule"])
 @app.on_event("startup")
 def startup_event():
     client = MongoClient(MONGODB_URI)
