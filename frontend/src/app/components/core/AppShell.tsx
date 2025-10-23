@@ -34,6 +34,11 @@ const navItemsList = [
     label: "Add Students",
     route: "/add-student",
   },
+  {
+    id: 5,
+    label: "Students List",
+    route: "/students-list",
+  },
 ];
 
 const routeChecker = (route: string, currentPath: string) => {
