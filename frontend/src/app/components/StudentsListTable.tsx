@@ -10,8 +10,10 @@ import {
   TextInput,
   Select,
   ScrollArea,
+  Anchor,
 } from "@mantine/core";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 type Props = {
   students: StudentListView | null;
@@ -117,7 +119,15 @@ export default function StudentsListTable({ students, loading }: Props) {
                     </Group>
                   </Table.Td>
                   <Table.Td>
-                    {student.firstName} {student.lastName}
+                    <Anchor
+                      component={Link}
+                      href={`/student/${student.id}`}
+                      underline="never"
+                      c="inherit"
+                      fw={500}
+                    >
+                      {student.firstName} {student.lastName}
+                    </Anchor>
                   </Table.Td>
                   <Table.Td>
                     <Badge color="indigo">{student.section}</Badge>
