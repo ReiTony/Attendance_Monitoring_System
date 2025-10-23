@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Response
 from pydantic import BaseModel, Field
 from models.user import Student
 from core.dependencies import role_required   
+from typing import List, Optional
 
 router = APIRouter()
 
@@ -26,7 +27,7 @@ class StudentOut(BaseModel):
 
 # Routes 
 @router.post(
-    "/",
+    "/create",
     response_model=StudentOut,
     status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(role_required("teacher"))],
@@ -67,3 +68,90 @@ async def create_student(payload: StudentCreate):
         seat_row=student.seat_row,
         seat_col=student.seat_col,
     )
+
+
+@router.get(
+    "/",
+    response_model=List[StudentOut],
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(role_required("teacher"))],
+)
+async def list_students(
+    section: Optional[str] = Query(None),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+    sort_by: str = Query("last_name"),
+    sort_dir: str = Query("asc"),
+):
+    query = {}
+    if section:
+        query["section"] = section
+        
+    sort_field_map = {
+        "last_name": Student.last_name,
+        "first_name": Student.first_name,
+        "student_id_no": Student.student_id_no,
+    }
+    sort_field = sort_field_map.get(sort_by, Student.last_name)
+    sort_expr = sort_field if sort_dir.lower() == "asc" else -sort_field
+
+    cursor = (
+        Student.find(query)
+        .sort(sort_expr)    
+        .skip(skip)
+        .limit(limit)
+    )
+
+    items = await cursor.to_list()
+    return [
+        StudentOut(
+            id=str(s.id),
+            first_name=s.first_name,
+            last_name=s.last_name,
+            section=s.section,
+            student_id_no=s.student_id_no,
+            seat_row=s.seat_row,
+            seat_col=s.seat_col,
+        )
+        for s in items
+    ]
+
+
+
+
+@router.get(
+    "/{student_id}",
+    response_model=StudentOut,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(role_required("teacher"))],
+)
+async def get_student(student_id: str):
+    student = await Student.get(student_id)
+    if not student:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+
+    return StudentOut(
+        id=str(student.id),
+        first_name=student.first_name,
+        last_name=student.last_name,
+        section=student.section,
+        student_id_no=student.student_id_no,
+        seat_row=student.seat_row,
+        seat_col=student.seat_col,
+    )
+
+
+
+
+@router.delete(
+    "/{student_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(role_required("teacher"))],
+)
+async def delete_student(student_id: str):
+    student = await Student.get(student_id)
+    if not student:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+
+    await student.delete()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
