@@ -47,7 +47,7 @@ app.include_router(students_route, prefix="/students", tags=["Students"])
 app.include_router(attendance_route, prefix="/attendance", tags=["Attendance"])
 app.include_router(class_report_route, prefix="/reports", tags=["Reports"])
 app.include_router(edit_details_route, prefix="/edit", tags=["Edit Details"])
-app.include_router(schedule_route, prefix="/schedule", tags=["Schedule"])
+app.include_router(schedule_route, prefix="/schedule", tags=["Class Schedule"])
 @app.on_event("startup")
 def startup_event():
     client = MongoClient(MONGODB_URI)
