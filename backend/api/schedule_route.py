@@ -9,7 +9,7 @@ DB_NAME = "attendance_system"
 
 ClassSchedule = Schedule
 
-@router.get("/class-schedules", tags=["Class Schedules"], response_model=List[ClassSchedule])
+@router.get("/class-schedules", response_model=List[ClassSchedule])
 async def get_class_schedules(
     request: Request,
     section: Optional[str] = Query(None, description="Filter by section"),
