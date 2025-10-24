@@ -121,7 +121,7 @@ export default function StudentsListTable({ students, loading }: Props) {
                   <Table.Td>
                     <Anchor
                       component={Link}
-                      href={`/student/${student.id}`}
+                      href={`/student/${student.studentIdNo}`}
                       underline="never"
                       c="inherit"
                       fw={500}
