@@ -1,7 +1,7 @@
 "use client";
 
 import { useStudent } from "@/hooks/student/useStudent";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import AppShell from "@/app/components/core/AppShell";
 import { useTeacher } from "@/hooks/useTeacher";
 import {
@@ -20,13 +20,43 @@ import {
   Divider,
   Box,
   Avatar,
+  Modal,
+  Alert,
 } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { MdDelete, MdCheckCircle, MdError } from "react-icons/md";
 import Link from "next/link";
+import { useDeleteStudent } from "@/hooks/student/useDeleteStudent";
+import { useEffect } from "react";
 
 export default function StudentDetails() {
   const { "student-id": studentId } = useParams();
   const { student, loading, error } = useStudent(studentId as string);
   const { teacherWithAccessToken, loading: teacherLoading } = useTeacher();
+  const {
+    deleteStudent,
+    loading: deleteLoading,
+    success,
+    error: deleteError,
+  } = useDeleteStudent();
+  const [opened, { open, close }] = useDisclosure(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (success) {
+      // Redirect to students list after successful deletion
+      setTimeout(() => {
+        router.push("/students-list");
+      }, 2000);
+    }
+  }, [success, router]);
+
+  const handleDelete = async () => {
+    if (student) {
+      await deleteStudent(student.id);
+      close();
+    }
+  };
 
   if (teacherLoading || loading) {
     return (
@@ -82,6 +112,30 @@ export default function StudentDetails() {
   return (
     <AppShell teacher={teacherWithAccessToken.teacher}>
       <Container size="xl">
+        {success && (
+          <Alert
+            icon={<MdCheckCircle size={20} />}
+            title="Success"
+            color="green"
+            mb="md"
+            withCloseButton={false}
+          >
+            {success} - Redirecting to students list...
+          </Alert>
+        )}
+
+        {deleteError && (
+          <Alert
+            icon={<MdError size={20} />}
+            title="Error"
+            color="red"
+            mb="md"
+            withCloseButton
+          >
+            {deleteError}
+          </Alert>
+        )}
+
         <Group justify="space-between" mb="md">
           <Group>
             <Button component={Link} href="/students-list" variant="subtle">
@@ -89,10 +143,44 @@ export default function StudentDetails() {
             </Button>
             <Title order={2}>Student Details</Title>
           </Group>
-          <Button component={Link} href={`/student/${student.id}/edit`}>
-            Edit Student
-          </Button>
+          <Group>
+            <Button component={Link} href={`/student/${student.id}/edit`}>
+              Edit Student
+            </Button>
+            <Button
+              color="red"
+              leftSection={<MdDelete size={18} />}
+              onClick={open}
+              loading={deleteLoading}
+            >
+              Delete Student
+            </Button>
+          </Group>
         </Group>
+
+        <Modal opened={opened} onClose={close} title="Delete Student" centered>
+          <Stack gap="md">
+            <Text>
+              Are you sure you want to delete{" "}
+              <strong>
+                {student.firstName} {student.lastName}
+              </strong>
+              ? This action cannot be undone.
+            </Text>
+            <Group justify="flex-end">
+              <Button variant="default" onClick={close}>
+                Cancel
+              </Button>
+              <Button
+                color="red"
+                onClick={handleDelete}
+                loading={deleteLoading}
+              >
+                Delete
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
 
         <Card shadow="sm" padding="lg" radius="md" withBorder>
           <Card.Section p="md" bg="blue.1">
