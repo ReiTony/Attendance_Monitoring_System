@@ -18,6 +18,7 @@ class StudentCreate(BaseModel):
 
 class StudentOut(BaseModel):
     id: str
+    student_id_no: str
     first_name: str
     last_name: str
     section: str
@@ -120,15 +121,18 @@ async def list_students(
 
 
 @router.get(
-    "/{student_id}",
+    "/{student_id_no}",
     response_model=StudentOut,
     status_code=status.HTTP_200_OK,
     dependencies=[Depends(role_required("teacher"))],
 )
-async def get_student(student_id: str):
-    student = await Student.get(student_id)
+async def get_student(student_id_no: str):
+    student = await Student.find_one(Student.student_id_no == student_id_no)
     if not student:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student not found"
+        )
 
     return StudentOut(
         id=str(student.id),
@@ -139,6 +143,7 @@ async def get_student(student_id: str):
         seat_row=student.seat_row,
         seat_col=student.seat_col,
     )
+
 
 
 
