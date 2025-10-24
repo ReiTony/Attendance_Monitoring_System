@@ -92,6 +92,8 @@ async def list_students(
         "last_name": Student.last_name,
         "first_name": Student.first_name,
         "student_id_no": Student.student_id_no,
+        "seat_row": Student.seat_row,
+        "seat_col": Student.seat_col,
     }
     sort_field = sort_field_map.get(sort_by, Student.last_name)
     sort_expr = sort_field if sort_dir.lower() == "asc" else -sort_field
