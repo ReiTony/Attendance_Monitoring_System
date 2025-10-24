@@ -46,7 +46,7 @@ export default function TeacherLoginForm() {
   return (
     <Paper shadow="xs" p="md" w={400}>
       <Title order={2} ta="center" mb="md">
-        Teacher Registration
+        Teacher Login
       </Title>
 
       {error && (
@@ -72,7 +72,7 @@ export default function TeacherLoginForm() {
           />
 
           <Button type="submit" fullWidth mt="md" loading={loading}>
-            Register
+            Login
           </Button>
         </Stack>
       </form>

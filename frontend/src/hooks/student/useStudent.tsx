@@ -1,15 +1,18 @@
 import { StudentView } from "@/dto/studentView";
 import { getStudent } from "@/services/studentServices";
 import { useCallback, useEffect, useState } from "react";
+import { useTeacher } from "@/hooks/useTeacher";
 
-export function useStudent() {
+export function useStudent(id: string) {
+  const { teacherWithAccessToken } = useTeacher();
   const [student, setStudent] = useState<StudentView | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const result = await getStudent();
+    if (!teacherWithAccessToken) return;
+    const result = await getStudent(id, teacherWithAccessToken.access_token);
 
     if ("error" in result) {
       setError(result.error.message);
@@ -29,7 +32,7 @@ export function useStudent() {
       setStudent(dataView);
     }
     setLoading(false);
-  }, []);
+  }, [teacherWithAccessToken, id]);
 
   useEffect(() => {
     if (!student) {
