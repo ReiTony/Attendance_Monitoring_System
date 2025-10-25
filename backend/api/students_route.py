@@ -25,6 +25,7 @@ class StudentOut(BaseModel):
     student_id_no: str
     seat_row: int
     seat_col: int
+    rfid_uid: str
 
 # Routes 
 @router.post(
@@ -92,6 +93,7 @@ async def list_students(
         "last_name": Student.last_name,
         "first_name": Student.first_name,
         "student_id_no": Student.student_id_no,
+        "rfid_uid": Student.rfid_uid,
         "seat_row": Student.seat_row,
         "seat_col": Student.seat_col,
     }
@@ -113,6 +115,7 @@ async def list_students(
             last_name=s.last_name,
             section=s.section,
             student_id_no=s.student_id_no,
+            rfid_uid=s.rfid_uid,
             seat_row=s.seat_row,
             seat_col=s.seat_col,
         )
@@ -142,6 +145,7 @@ async def get_student(student_id_no: str):
         last_name=student.last_name,
         section=student.section,
         student_id_no=student.student_id_no,
+        rfid_uid=student.rfid_uid,
         seat_row=student.seat_row,
         seat_col=student.seat_col,
     )
