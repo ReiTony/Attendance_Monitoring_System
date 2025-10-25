@@ -3,12 +3,12 @@ import { ApiError } from "@/utils/apiError";
 import { err, ok, Result } from "@/utils/result";
 import axios from "axios";
 
-export const getClassSchedules = async (): Promise<
-  Result<ClassScheduleListApi>
-> => {
+export const getClassSchedules = async (
+  section: string,
+): Promise<Result<ClassScheduleListApi>> => {
   try {
     const response = await axios.get(
-      `https://attendance-monitoring-system-65w1.onrender.com/schedule/class-schedules`,
+      `https://attendance-monitoring-system-65w1.onrender.com/schedule/class-schedules?section=${section}`,
     );
 
     if (!response.data) {

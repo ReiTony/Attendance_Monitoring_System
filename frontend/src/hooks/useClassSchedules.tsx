@@ -1,8 +1,10 @@
 import { ClassScheduleListView } from "@/dto/classScheduleView";
 import { getClassSchedules } from "@/services/classSchedulesService";
 import { useCallback, useEffect, useState } from "react";
+import { useTeacher } from "@/hooks/useTeacher";
 
 export function useClassSchedules() {
+  const { teacherWithAccessToken } = useTeacher();
   const [classSchedules, setClassSchedules] =
     useState<ClassScheduleListView | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -10,7 +12,10 @@ export function useClassSchedules() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const result = await getClassSchedules();
+    if (!teacherWithAccessToken) return;
+    const result = await getClassSchedules(
+      teacherWithAccessToken.teacher.section,
+    );
 
     if ("error" in result) {
       setError(result.error.message);
@@ -34,7 +39,7 @@ export function useClassSchedules() {
       setClassSchedules(dataView);
     }
     setLoading(false);
-  }, []);
+  }, [teacherWithAccessToken]);
 
   useEffect(() => {
     if (!classSchedules) {

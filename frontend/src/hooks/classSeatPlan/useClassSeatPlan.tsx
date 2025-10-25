@@ -1,8 +1,10 @@
 import { ClassSeatPlan } from "@/domain/classSeatPlan";
 import { useCallback, useEffect, useState } from "react";
-import { useStudents } from "../useStudents";
+import { useStudents } from "@/hooks/useStudents";
+import { useTeacher } from "@/hooks/useTeacher";
 
 export function useClassSeatPlan() {
+  const { teacherWithAccessToken } = useTeacher();
   const [classSeatPlan, setClassSeatPlan] = useState<ClassSeatPlan | null>(
     null,
   );
@@ -17,6 +19,7 @@ export function useClassSeatPlan() {
 
   const load = useCallback(async () => {
     setLoading(studentsLoading);
+    if (!teacherWithAccessToken) return;
     if (!students) return;
     if (studentsError) setError(studentsError);
 
@@ -24,13 +27,18 @@ export function useClassSeatPlan() {
       firstName: s.firstName,
       lastName: s.lastName,
       studentId: s.studentIdNo,
+      section: s.section,
       seatRow: s.seatRow,
       seatCol: s.seatCol,
     }));
 
-    setClassSeatPlan(dataView);
+    const filteredData: ClassSeatPlan = dataView.filter(
+      (value) => value.section === teacherWithAccessToken.teacher.section,
+    );
+
+    setClassSeatPlan(filteredData);
     setLoading(false);
-  }, [students, studentsLoading, studentsError]);
+  }, [students, studentsLoading, studentsError, teacherWithAccessToken]);
 
   useEffect(() => {
     if (!classSeatPlan) {

@@ -1,4 +1,5 @@
 import { Teacher } from "@/domain/teacher";
+import { useTeacher } from "@/hooks/useTeacher";
 import {
   AppShell as MAppShell,
   Group,
@@ -9,6 +10,7 @@ import {
   Avatar,
   Stack,
   NavLink,
+  Button,
 } from "@mantine/core";
 import { usePathname } from "next/navigation";
 import { ReactNode, useState } from "react";
@@ -60,6 +62,7 @@ const AppShell = ({
 }) => {
   const pathname = usePathname();
   const [opened, setOpened] = useState(false);
+  const { logout, loading } = useTeacher();
 
   return (
     <MAppShell
@@ -113,6 +116,12 @@ const AppShell = ({
               />
             ))}
           </Stack>
+        </MAppShell.Section>
+
+        <MAppShell.Section>
+          <Button onClick={logout} loading={loading} w={"100%"}>
+            Logout
+          </Button>
         </MAppShell.Section>
 
         <MAppShell.Section>

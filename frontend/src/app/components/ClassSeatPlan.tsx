@@ -28,11 +28,11 @@ export default function ClassSeatPlan() {
     return <LoadingOverlay visible />;
   }
 
-  // Calculate the grid dimensions
-  const maxRow = Math.max(...classSeatPlan.map((seat) => seat.seatRow), 0);
-  const maxCol = Math.max(...classSeatPlan.map((seat) => seat.seatCol), 0);
+  // Calculate the grid dimensions (starting from 1)
+  const maxRow = Math.max(...classSeatPlan.map((seat) => seat.seatRow), 1);
+  const maxCol = Math.max(...classSeatPlan.map((seat) => seat.seatCol), 1);
 
-  // Create a 2D grid to place students
+  // Create a 2D grid to place students (starting from index 1)
   const seatGrid: ((typeof classSeatPlan)[0] | null)[][] = Array.from(
     { length: maxRow + 1 },
     () => Array(maxCol + 1).fill(null)
@@ -40,7 +40,7 @@ export default function ClassSeatPlan() {
 
   // Populate the grid with students
   classSeatPlan.forEach((seat) => {
-    if (seat.seatRow >= 0 && seat.seatCol >= 0) {
+    if (seat.seatRow >= 1 && seat.seatCol >= 1) {
       seatGrid[seat.seatRow][seat.seatCol] = seat;
     }
   });
@@ -59,10 +59,10 @@ export default function ClassSeatPlan() {
 
         <Box style={{ overflowX: "auto" }}>
           <Stack gap="md">
-            {seatGrid.map((row, rowIndex) => (
-              <Grid key={rowIndex} gutter="md" justify="center">
-                {row.map((seat, colIndex) => (
-                  <Grid.Col key={colIndex} span="content">
+            {seatGrid.slice(1).map((row, rowIndex) => (
+              <Grid key={rowIndex + 1} gutter="md" justify="center">
+                {row.slice(1).map((seat, colIndex) => (
+                  <Grid.Col key={colIndex + 1} span="content">
                     {seat ? (
                       <Link
                         href={`/student/${seat.studentId}`}

@@ -34,19 +34,16 @@ export default function UpdateStudentForm({
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
   const { updateStudent, loading, error } = useUpdateStudent();
 
-  // Make sure to retrieve RFID UID if API call is needed
-  // We could use the token here to fetch additional data if needed
-
   const form = useForm({
     initialValues: {
       first_name: student.firstName,
       last_name: student.lastName,
       section: student.section,
-      rfid_uid: "", // This is assumed to be empty as it wasn't in the StudentView type
+      rfid_uid: student.rfid_uid,
       student_id_no: student.studentIdNo,
       seat_row: student.seatRow,
       seat_col: student.seatCol,
-      is_active: true, // Default value as required
+      is_active: true,
     },
 
     validate: {

@@ -3,12 +3,12 @@ import { ApiError } from "@/utils/apiError";
 import { err, ok, Result } from "@/utils/result";
 import axios from "axios";
 
-export const getAttendanceLogs = async (): Promise<
-  Result<AttendanceLogApi>
-> => {
+export const getAttendanceLogs = async (
+  section: string,
+): Promise<Result<AttendanceLogApi>> => {
   try {
     const response = await axios.get(
-      `https://attendance-monitoring-system-65w1.onrender.com/reports/attendance-summary`
+      `https://attendance-monitoring-system-65w1.onrender.com/reports/attendance-summary?section=${section}`,
     );
 
     if (!response.data) {

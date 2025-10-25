@@ -5,11 +5,12 @@ import { err, ok, Result } from "@/utils/result";
 import axios from "axios";
 
 export const getStudents = async (
-  token: string
+  section: string,
+  token: string,
 ): Promise<Result<StudentApi[]>> => {
   try {
     const response = await axios.get(
-      `https://attendance-monitoring-system-65w1.onrender.com/students?token=${token}`
+      `https://attendance-monitoring-system-65w1.onrender.com/students?token=${token}&section=${section}`,
     );
 
     if (!response.data) {
@@ -55,11 +56,11 @@ export const getStudents = async (
 
 export const getStudent = async (
   id: string,
-  token: string
+  token: string,
 ): Promise<Result<StudentApi>> => {
   try {
     const response = await axios.get(
-      `https://attendance-monitoring-system-65w1.onrender.com/students/${id}?token=${token}`
+      `https://attendance-monitoring-system-65w1.onrender.com/students/${id}?token=${token}`,
     );
 
     if (!response.data) {
@@ -105,12 +106,12 @@ export const getStudent = async (
 
 export const postStudent = async (
   token: string,
-  form: StudentForm
+  form: StudentForm,
 ): Promise<Result<StudentApi>> => {
   try {
     const response = await axios.post(
       `https://attendance-monitoring-system-65w1.onrender.com/students/create?token=${token}`,
-      form
+      form,
     );
 
     if (!response.data) {
@@ -157,7 +158,7 @@ export const postStudent = async (
 export const putStudent = async (
   id: string,
   form: StudentUpdateForm,
-  token?: string
+  token?: string,
 ): Promise<Result<StudentApi>> => {
   try {
     const url = token
@@ -209,11 +210,11 @@ export const putStudent = async (
 
 export const deleteStudent = async (
   id: string,
-  token: string
+  token: string,
 ): Promise<Result<void>> => {
   try {
     await axios.delete(
-      `https://attendance-monitoring-system-65w1.onrender.com/students/${id}?token=${token}`
+      `https://attendance-monitoring-system-65w1.onrender.com/students/${id}?token=${token}`,
     );
 
     return ok(undefined);

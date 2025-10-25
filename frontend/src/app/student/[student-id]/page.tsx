@@ -144,7 +144,10 @@ export default function StudentDetails() {
             <Title order={2}>Student Details</Title>
           </Group>
           <Group>
-            <Button component={Link} href={`/student/${student.id}/edit`}>
+            <Button
+              component={Link}
+              href={`/student/${student.studentIdNo}/edit`}
+            >
               Edit Student
             </Button>
             <Button
@@ -220,6 +223,14 @@ export default function StudentDetails() {
                     Section
                   </Text>
                   <Text fw={500}>{student.section}</Text>
+                </Paper>
+              </Grid.Col>
+              <Grid.Col span={6}>
+                <Paper withBorder p="md" radius="md">
+                  <Text size="sm" c="dimmed">
+                    RFID UID
+                  </Text>
+                  <Text fw={500}>{student.rfid_uid}</Text>
                 </Paper>
               </Grid.Col>
               <Grid.Col span={6}>
