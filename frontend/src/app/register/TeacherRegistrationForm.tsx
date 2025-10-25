@@ -8,9 +8,11 @@ import {
   Title,
   Paper,
   Alert,
+  Anchor,
 } from "@mantine/core";
 import { useActionState } from "react";
 import { signup } from "./action";
+import Link from "next/link";
 
 export default function TeacherRegistrationForm() {
   const [state, action, isPending] = useActionState(signup, { message: "" });
@@ -70,6 +72,10 @@ export default function TeacherRegistrationForm() {
             placeholder="Enter your section"
             required
           />
+
+          <Anchor component={Link} href={"/login"}>
+            Already Have an Account?
+          </Anchor>
 
           <Button type="submit" fullWidth mt="md" loading={isPending}>
             Register

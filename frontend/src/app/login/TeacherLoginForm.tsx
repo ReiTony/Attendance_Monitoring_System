@@ -8,10 +8,12 @@ import {
   Title,
   Paper,
   Alert,
+  Anchor,
 } from "@mantine/core";
 import { useState } from "react";
 import { authLogin } from "@/services/teacherService";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function TeacherLoginForm() {
   // const [state, action, isPending] = useActionState(login, { message: "" });
@@ -70,6 +72,10 @@ export default function TeacherLoginForm() {
             placeholder="Create a password"
             required
           />
+
+          <Anchor component={Link} href={"/register"}>
+            Create Account
+          </Anchor>
 
           <Button type="submit" fullWidth mt="md" loading={loading}>
             Login
