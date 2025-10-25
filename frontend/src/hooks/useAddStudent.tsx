@@ -28,6 +28,7 @@ export function useCreateStudent() {
         lastName: d.last_name,
         section: d.section,
         studentIdNo: d.student_id_no,
+        rfid_uid: d.rfid_uid,
         seatRow: d.seat_row,
         seatCol: d.seat_col,
       };

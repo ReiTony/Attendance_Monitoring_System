@@ -29,6 +29,7 @@ export function useStudents() {
         lastName: s.last_name,
         section: s.section,
         studentIdNo: s.student_id_no,
+        rfid_uid: s.rfid_uid,
         seatRow: s.seat_row,
         seatCol: s.seat_col,
       }));
