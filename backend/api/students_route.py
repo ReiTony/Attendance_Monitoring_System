@@ -151,12 +151,12 @@ async def get_student(student_id_no: str):
 
 
 @router.delete(
-    "/{student_id}",
+    "/{student_id_no}",
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[Depends(role_required("teacher"))],
 )
-async def delete_student(student_id: str):
-    student = await Student.get(student_id)
+async def delete_student(student_id_no: str):
+    student = await Student.find_one(Student.student_id_no == student_id_no)
     if not student:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
 
