@@ -4,6 +4,7 @@ export type StudentApi = {
   last_name: string;
   section: string;
   student_id_no: string;
+  rfid_uid: string;
   seat_row: 0;
   seat_col: 0;
 };

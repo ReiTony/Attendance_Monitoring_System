@@ -12,7 +12,10 @@ export function useStudents() {
   const load = useCallback(async () => {
     setLoading(true);
     if (!teacherWithAccessToken) return;
-    const result = await getStudents(teacherWithAccessToken.access_token);
+    const result = await getStudents(
+      teacherWithAccessToken.teacher.section,
+      teacherWithAccessToken.access_token,
+    );
 
     if ("error" in result) {
       setError(result.error.message);
@@ -26,6 +29,7 @@ export function useStudents() {
         lastName: s.last_name,
         section: s.section,
         studentIdNo: s.student_id_no,
+        rfid_uid: s.rfid_uid,
         seatRow: s.seat_row,
         seatCol: s.seat_col,
       }));

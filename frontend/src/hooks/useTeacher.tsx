@@ -23,8 +23,10 @@ export function useTeacher() {
   }, [router]);
 
   const logout = () => {
+    setLoading(true);
     clearTeacherCache();
     setTeacherWithAccessToken(null);
+    setLoading(false);
     router.push("/login");
   };
 

@@ -24,6 +24,7 @@ export function useUpdateStudent() {
           firstName: d.first_name,
           lastName: d.last_name,
           section: d.section,
+          rfid_uid: d.rfid_uid,
           studentIdNo: d.student_id_no,
           seatRow: d.seat_row,
           seatCol: d.seat_col,
