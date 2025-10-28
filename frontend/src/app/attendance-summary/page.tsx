@@ -35,7 +35,11 @@ export default function AttendanceSummary() {
             onChange={(event) => setSection(event.currentTarget.value)}
             mb="md"
           />
-          <Button onClick={handleFetchSummary} disabled={!section.trim()}>
+          <Button
+            onClick={handleFetchSummary}
+            disabled={!section.trim()}
+            loading={loading}
+          >
             Get Attendance Summary
           </Button>
         </Box>

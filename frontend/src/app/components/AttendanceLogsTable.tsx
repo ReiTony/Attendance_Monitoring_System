@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Table, ScrollArea, TextInput, Box, Group } from "@mantine/core";
+import {
+  Table,
+  ScrollArea,
+  TextInput,
+  Box,
+  Group,
+  Loader,
+} from "@mantine/core";
 import { AttendanceLogListView } from "@/dto/attendanceLogsView";
 
 interface AttendanceLogsTableProps {
@@ -66,7 +73,7 @@ export const AttendanceLogsTable = ({
             ) : (
               <Table.Tr>
                 <Table.Td colSpan={5} align="center">
-                  {loading ? "Loading..." : "No attendance logs found"}
+                  {loading ? <Loader /> : "No attendance logs found"}
                 </Table.Td>
               </Table.Tr>
             )}
