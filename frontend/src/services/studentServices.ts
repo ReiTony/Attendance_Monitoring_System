@@ -6,11 +6,11 @@ import axios from "axios";
 
 export const getStudents = async (
   section: string,
-  token: string,
+  token: string
 ): Promise<Result<StudentApi[]>> => {
   try {
     const response = await axios.get(
-      `https://attendance-monitoring-system-65w1.onrender.com/students?token=${token}&section=${section}`,
+      `https://attendance-monitoring-system-65w1.onrender.com/students?token=${token}&section=${section}`
     );
 
     if (!response.data) {
@@ -56,11 +56,11 @@ export const getStudents = async (
 
 export const getStudent = async (
   id: string,
-  token: string,
+  token: string
 ): Promise<Result<StudentApi>> => {
   try {
     const response = await axios.get(
-      `https://attendance-monitoring-system-65w1.onrender.com/students/${id}?token=${token}`,
+      `https://attendance-monitoring-system-65w1.onrender.com/students/${id}?token=${token}`
     );
 
     if (!response.data) {
@@ -106,15 +106,26 @@ export const getStudent = async (
 
 export const postStudent = async (
   token: string,
-  form: StudentForm,
+  form: StudentForm
 ): Promise<Result<StudentApi>> => {
   try {
     const response = await axios.post(
       `https://attendance-monitoring-system-65w1.onrender.com/students/create?token=${token}`,
-      form,
+      form
     );
 
     if (!response.data) {
+      if (response.status === 400) {
+        const speErr: ApiError = {
+          code: response.status,
+          message: "Seat is taken",
+          details: "[Error] (post) <postStudent()>",
+        };
+
+        console.error(speErr);
+
+        return err(speErr);
+      }
       const error: ApiError = {
         code: response.status,
         message: response.statusText,
@@ -131,6 +142,17 @@ export const postStudent = async (
     return ok(data);
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
+      if (error.response.status === 400) {
+        const speErr: ApiError = {
+          code: error.response.status,
+          message: error.response.data.detail,
+          details: "[Error] (post) <postStudent()>",
+        };
+
+        console.error(speErr);
+
+        return err(speErr);
+      }
       const axError = {
         code: error.response.status,
         message: error.response.statusText,
@@ -158,7 +180,7 @@ export const postStudent = async (
 export const putStudent = async (
   id: string,
   form: StudentUpdateForm,
-  token?: string,
+  token?: string
 ): Promise<Result<StudentApi>> => {
   try {
     const url = token
@@ -210,11 +232,11 @@ export const putStudent = async (
 
 export const deleteStudent = async (
   id: string,
-  token: string,
+  token: string
 ): Promise<Result<void>> => {
   try {
     await axios.delete(
-      `https://attendance-monitoring-system-65w1.onrender.com/students/${id}?token=${token}`,
+      `https://attendance-monitoring-system-65w1.onrender.com/students/${id}?token=${token}`
     );
 
     return ok(undefined);
