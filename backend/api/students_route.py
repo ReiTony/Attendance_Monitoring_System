@@ -22,7 +22,6 @@ class StudentOut(BaseModel):
     first_name: str
     last_name: str
     section: str
-    student_id_no: str
     seat_row: int
     seat_col: int
     rfid_uid: str
@@ -69,6 +68,7 @@ async def create_student(payload: StudentCreate):
         student_id_no=student.student_id_no,
         seat_row=student.seat_row,
         seat_col=student.seat_col,
+        rfid_uid=student.rfid_uid,
     )
 
 
