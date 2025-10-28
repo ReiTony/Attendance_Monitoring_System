@@ -9,8 +9,8 @@ export default function Home() {
         <Button component={Link} href={"/login"}>
           Login
         </Button>
-        <Button component={Link} href={"/register"}>
-          Register
+        <Button component={Link} href={"/attendance-summary"}>
+          Attendance Summary
         </Button>
       </Stack>
     </Center>
