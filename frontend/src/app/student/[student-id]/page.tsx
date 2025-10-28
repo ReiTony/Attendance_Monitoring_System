@@ -53,7 +53,7 @@ export default function StudentDetails() {
 
   const handleDelete = async () => {
     if (student) {
-      await deleteStudent(student.id);
+      await deleteStudent(student.studentIdNo);
       close();
     }
   };

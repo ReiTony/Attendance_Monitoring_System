@@ -83,10 +83,6 @@ export default function UpdateStudentForm({
     // Set success state if no errors
     if (!error) {
       setSubmissionSuccess(true);
-      // Redirect to student details page after a brief delay to show success message
-      setTimeout(() => {
-        router.push(`/student/${studentId}`);
-      }, 1500);
     }
   };
 
@@ -104,7 +100,7 @@ export default function UpdateStudentForm({
 
       {submissionSuccess && (
         <Alert title="Success" color="green" mb="md">
-          Student updated successfully! Redirecting...
+          Student updated successfully!
         </Alert>
       )}
 
