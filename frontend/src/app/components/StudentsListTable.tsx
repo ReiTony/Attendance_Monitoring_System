@@ -8,11 +8,10 @@ import {
   Text,
   ThemeIcon,
   TextInput,
-  Select,
   ScrollArea,
   Anchor,
 } from "@mantine/core";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 
 type Props = {
@@ -21,19 +20,7 @@ type Props = {
 };
 
 export default function StudentsListTable({ students, loading }: Props) {
-  const [filterSection, setFilterSection] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sections, setSections] = useState<string[]>([]);
-
-  useEffect(() => {
-    // Extract unique sections for filtering if students data is available
-    if (students && students.length > 0) {
-      const uniqueSections = Array.from(
-        new Set(students.map((student) => student.section))
-      );
-      setSections(uniqueSections);
-    }
-  }, [students]);
 
   if (loading) {
     return (
@@ -54,13 +41,8 @@ export default function StudentsListTable({ students, loading }: Props) {
     );
   }
 
-  // Filter students based on section and search query
+  // Filter students based on search query
   const filteredStudents = students.filter((student) => {
-    // Filter by section if selected
-    if (filterSection && student.section !== filterSection) {
-      return false;
-    }
-
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -85,14 +67,6 @@ export default function StudentsListTable({ students, loading }: Props) {
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.currentTarget.value)}
           style={{ flex: 1 }}
-        />
-        <Select
-          placeholder="Filter by section"
-          value={filterSection}
-          onChange={setFilterSection}
-          data={sections.map((section) => ({ value: section, label: section }))}
-          clearable
-          style={{ width: 150 }}
         />
       </Group>
 

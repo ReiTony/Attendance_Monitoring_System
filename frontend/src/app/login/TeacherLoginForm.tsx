@@ -73,10 +73,6 @@ export default function TeacherLoginForm() {
             required
           />
 
-          <Anchor component={Link} href={"/register"}>
-            Create Account
-          </Anchor>
-
           <Button type="submit" fullWidth mt="md" loading={loading}>
             Login
           </Button>

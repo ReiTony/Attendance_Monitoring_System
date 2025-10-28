@@ -32,19 +32,12 @@ export default function ClassSchedulesTable({
   loading,
 }: Props) {
   const [filterDay, setFilterDay] = useState<string | null>(null);
-  const [filterSection, setFilterSection] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [days, setDays] = useState<string[]>([]);
-  const [sections, setSections] = useState<string[]>([]);
 
   useEffect(() => {
-    // Extract unique sections and days for filtering if classSchedules is available
+    // Extract unique days for filtering if classSchedules is available
     if (classSchedules && classSchedules.length > 0) {
-      const uniqueSections = Array.from(
-        new Set(classSchedules.map((schedule) => schedule.section))
-      );
-      setSections(uniqueSections);
-
       const uniqueDays = Array.from(
         new Set(classSchedules.map((schedule) => schedule.day))
       );
@@ -71,15 +64,10 @@ export default function ClassSchedulesTable({
     );
   }
 
-  // Filter schedules based on day, section, and search query
+  // Filter schedules based on day and search query
   const filteredSchedules = classSchedules.filter((schedule) => {
     // Filter by day if selected
     if (filterDay && schedule.day !== filterDay) {
-      return false;
-    }
-
-    // Filter by section if selected
-    if (filterSection && schedule.section !== filterSection) {
       return false;
     }
 
@@ -110,14 +98,6 @@ export default function ClassSchedulesTable({
           value={filterDay}
           onChange={setFilterDay}
           data={days.map((day) => ({ value: day, label: day }))}
-          clearable
-          style={{ width: 150 }}
-        />
-        <Select
-          placeholder="Filter by section"
-          value={filterSection}
-          onChange={setFilterSection}
-          data={sections.map((section) => ({ value: section, label: section }))}
           clearable
           style={{ width: 150 }}
         />

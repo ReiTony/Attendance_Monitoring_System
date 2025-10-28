@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Table,
   ScrollArea,
   TextInput,
-  Select,
   Box,
   Group,
+  Loader,
 } from "@mantine/core";
 import { AttendanceLogListView } from "@/dto/attendanceLogsView";
 
@@ -20,28 +20,11 @@ export const AttendanceLogsTable = ({
   attendanceLogs,
   loading,
 }: AttendanceLogsTableProps) => {
-  const [filterSection, setFilterSection] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sections, setSections] = useState<string[]>([]);
 
-  useEffect(() => {
-    // Extract unique sections for filtering if attendanceLogs is available
-    if (attendanceLogs && attendanceLogs.attendanceLogs.length > 0) {
-      const uniqueSections = Array.from(
-        new Set(attendanceLogs.attendanceLogs.map((log) => log.section))
-      );
-      setSections(uniqueSections);
-    }
-  }, [attendanceLogs]);
-
-  // Filter logs based on section and search query
+  // Filter logs based on search query
   const filteredLogs =
     attendanceLogs?.attendanceLogs.filter((log) => {
-      // Filter by section if selected
-      if (filterSection && log.section !== filterSection) {
-        return false;
-      }
-
       // Filter by search query
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -62,14 +45,6 @@ export const AttendanceLogsTable = ({
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.currentTarget.value)}
           style={{ flex: 1 }}
-        />
-        <Select
-          placeholder="Filter by section"
-          value={filterSection}
-          onChange={setFilterSection}
-          data={sections.map((section) => ({ value: section, label: section }))}
-          clearable
-          style={{ width: 200 }}
         />
       </Group>
 
@@ -98,7 +73,7 @@ export const AttendanceLogsTable = ({
             ) : (
               <Table.Tr>
                 <Table.Td colSpan={5} align="center">
-                  {loading ? "Loading..." : "No attendance logs found"}
+                  {loading ? <Loader /> : "No attendance logs found"}
                 </Table.Td>
               </Table.Tr>
             )}
