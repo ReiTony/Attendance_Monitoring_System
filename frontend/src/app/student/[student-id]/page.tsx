@@ -138,7 +138,7 @@ export default function StudentDetails() {
 
         <Group justify="space-between" mb="md">
           <Group>
-            <Button component={Link} href="/students-list" variant="subtle">
+            <Button component={Link} href="/students-list">
               Back
             </Button>
             <Title order={2}>Student Details</Title>
