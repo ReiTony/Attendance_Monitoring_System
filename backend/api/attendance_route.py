@@ -3,6 +3,8 @@ import datetime
 import os
 from bson import ObjectId
 
+from models.attendance_schema import RfidTapResponse, AttendanceRecordsResponse, StudentSummarySchema
+
 from .attendance_utils import (
     get_mongo_client,
     ensure_mongo_available,
@@ -23,7 +25,7 @@ router = APIRouter()
 DB_NAME = "attendance_system"
 COL_NAME = "subject_attendance"
 
-@router.post("/rfid")
+@router.post("/rfid", response_model=RfidTapResponse)
 async def rfid_tap(rfid_uid: str = Query(..., description="RFID UID"), request: Request = None):
     """
     Tap handler:
@@ -60,29 +62,15 @@ async def rfid_tap(rfid_uid: str = Query(..., description="RFID UID"), request: 
         end_time_from_db = schedule_doc.get("end_time")
 
         if isinstance(start_time_from_db, datetime.datetime) and isinstance(end_time_from_db, datetime.datetime):
-            
-            # --- THE DEFINITIVE FIX IS HERE ---
-
-            # 1. Extract just the TIME component from the schedule's stored datetime.
             schedule_start_time = start_time_from_db.time()
             schedule_end_time = end_time_from_db.time()
-            
-            # 2. Get TODAY's DATE component from the current time.
             today_date_utc = now_dt.date()
-            
-            # 3. Combine TODAY's DATE with the schedule's TIME to create a comparable datetime.
             start_dt_today = datetime.datetime.combine(today_date_utc, schedule_start_time)
             end_dt_today = datetime.datetime.combine(today_date_utc, schedule_end_time)
-
-            # 4. Make these new datetimes timezone-aware (they are in UTC).
             start_dt_today_aware = start_dt_today.replace(tzinfo=datetime.timezone.utc)
             end_dt_today_aware = end_dt_today.replace(tzinfo=datetime.timezone.utc)
-            
-            # 5. Handle potential overnight classes (where end time is on the next day).
             if end_dt_today_aware < start_dt_today_aware:
                 end_dt_today_aware += datetime.timedelta(days=1)
-
-            # 6. Now we are comparing apples to apples: today's time vs. today's schedule.
             if start_dt_today_aware <= now_dt < end_dt_today_aware:
                 active_schedule = schedule_doc
                 break
@@ -90,7 +78,6 @@ async def rfid_tap(rfid_uid: str = Query(..., description="RFID UID"), request: 
     if not active_schedule:
         raise HTTPException(status_code=400, detail=f"No class is currently in session for student_id '{student_id}' at this time.")
 
-    # The rest of the function is correct and remains the same.
     subject = active_schedule.get("subject")
     start_time = active_schedule.get("start_time")
     end_time = active_schedule.get("end_time")
@@ -106,11 +93,12 @@ async def rfid_tap(rfid_uid: str = Query(..., description="RFID UID"), request: 
     recompute_flags_and_update(db, filt, start_time, end_time, student, subject)
 
     doc = att_col.find_one(filt)
-    if doc and "_id" in doc:
-        doc["_id"] = str(doc["_id"]) 
+    if not doc:
+        raise HTTPException(status_code=500, detail="Attendance record could not be found after update.")
+
     return {"doc": doc}
 
-@router.get("/records")
+@router.get("/records", response_model=StudentSummarySchema)
 async def get_attendance_records(
     request: Request,
     student_id: str = Query(..., description="Filter by student_id"),
@@ -132,16 +120,5 @@ async def get_attendance_records(
         query["lesson_date"] = lesson_date
 
     records = list(att_col.find(query))
-
-    for rec in records:
-        rec["_id"] = str(rec["_id"])
-        if "time_in" in rec:
-            rec["time_in"] = str(rec["time_in"])
-        if "time_out" in rec:
-            rec["time_out"] = str(rec["time_out"])
-        if "created_at" in rec:
-            rec["created_at"] = str(rec["created_at"])
-        if "updated_at" in rec:
-            rec["updated_at"] = str(rec["updated_at"])
 
     return {"records": records}
