@@ -2,6 +2,10 @@ from fastapi import APIRouter, Request, HTTPException, Query
 import datetime
 import os
 from bson import ObjectId
+from fastapi.encoders import jsonable_encoder
+from typing import Optional  # <-- added
+
+from models.attendance_schema import RfidTapResponse, AttendanceRecordsResponse, StudentSummarySchema
 
 from .attendance_utils import (
     get_mongo_client,
@@ -23,7 +27,7 @@ router = APIRouter()
 DB_NAME = "attendance_system"
 COL_NAME = "subject_attendance"
 
-@router.post("/rfid")
+@router.post("/rfid", response_model=RfidTapResponse)
 async def rfid_tap(rfid_uid: str = Query(..., description="RFID UID"), request: Request = None):
     """
     Tap handler:
@@ -48,9 +52,18 @@ async def rfid_tap(rfid_uid: str = Query(..., description="RFID UID"), request: 
 
     now_dt = datetime.datetime.now(datetime.timezone.utc)
     weekday_short = now_dt.strftime("%a")
-    student_id = student.get("student_id")
-    
-    sched_filt = {"student_id": student_id, "day": weekday_short}
+
+    # Prefer real student_id; fall back to student_id_no; else canonical (_id string)
+    student_id_primary = student.get("student_id")
+    student_id_alt = student.get("student_id_no")
+    student_id_canonical = student_canonical_id(student)
+
+    # Build schedule filter that tries both ids if available
+    if student_id_primary and student_id_alt and student_id_primary != student_id_alt:
+        sched_filt = {"student_id": {"$in": [student_id_primary, student_id_alt]}, "day": weekday_short}
+    else:
+        sched_filt = {"student_id": (student_id_primary or student_id_alt or student_id_canonical), "day": weekday_short}
+
     schedules_from_db = schedules_col.find(sched_filt)
 
     active_schedule = None
@@ -60,88 +73,77 @@ async def rfid_tap(rfid_uid: str = Query(..., description="RFID UID"), request: 
         end_time_from_db = schedule_doc.get("end_time")
 
         if isinstance(start_time_from_db, datetime.datetime) and isinstance(end_time_from_db, datetime.datetime):
-            
-            # --- THE DEFINITIVE FIX IS HERE ---
-
-            # 1. Extract just the TIME component from the schedule's stored datetime.
             schedule_start_time = start_time_from_db.time()
             schedule_end_time = end_time_from_db.time()
-            
-            # 2. Get TODAY's DATE component from the current time.
             today_date_utc = now_dt.date()
-            
-            # 3. Combine TODAY's DATE with the schedule's TIME to create a comparable datetime.
             start_dt_today = datetime.datetime.combine(today_date_utc, schedule_start_time)
             end_dt_today = datetime.datetime.combine(today_date_utc, schedule_end_time)
-
-            # 4. Make these new datetimes timezone-aware (they are in UTC).
             start_dt_today_aware = start_dt_today.replace(tzinfo=datetime.timezone.utc)
             end_dt_today_aware = end_dt_today.replace(tzinfo=datetime.timezone.utc)
-            
-            # 5. Handle potential overnight classes (where end time is on the next day).
             if end_dt_today_aware < start_dt_today_aware:
                 end_dt_today_aware += datetime.timedelta(days=1)
-
-            # 6. Now we are comparing apples to apples: today's time vs. today's schedule.
             if start_dt_today_aware <= now_dt < end_dt_today_aware:
                 active_schedule = schedule_doc
                 break
 
     if not active_schedule:
-        raise HTTPException(status_code=400, detail=f"No class is currently in session for student_id '{student_id}' at this time.")
+        raise HTTPException(
+            status_code=200,
+            detail=f"No class is currently in session for student '{student_id_primary or student_id_alt or student_id_canonical}' at this time."
+        )
 
-    # The rest of the function is correct and remains the same.
     subject = active_schedule.get("subject")
     start_time = active_schedule.get("start_time")
     end_time = active_schedule.get("end_time")
     lesson_date = now_dt.date().isoformat()
-    
+
+    # Use canonical id downstream where needed
     filt = build_attendance_filter(student, lesson_date, subject)
     existing = att_col.find_one(filt)
     now_iso = now_iso_z()
     action = "tap_in" if not existing else ("tap_out" if existing.get("time_out") is None else "tap_in")
     student_id_str = student_canonical_id(student)
-    insert_or_update_log(db, student_id_str, student, student_id, lesson_date, now_iso, action)
-    handle_attendance_record(db, student, student_id, subject, lesson_date, now_dt, now_iso, start_time, end_time)
+    insert_or_update_log(db, student_id_str, student, (student_id_primary or student_id_alt), lesson_date, now_iso, action)
+    handle_attendance_record(db, student, (student_id_primary or student_id_alt or student_id_str), subject, lesson_date, now_dt, now_iso, start_time, end_time)
     recompute_flags_and_update(db, filt, start_time, end_time, student, subject)
 
     doc = att_col.find_one(filt)
-    if doc and "_id" in doc:
-        doc["_id"] = str(doc["_id"]) 
-    return {"doc": doc}
+    if not doc:
+        raise HTTPException(status_code=500, detail="Attendance record could not be found after update.")
 
-@router.get("/records")
+    # Ensure serializable for response model
+    return {"doc": jsonable_encoder(doc, custom_encoder={ObjectId: str})}
+
+@router.get("/records", response_model=AttendanceRecordsResponse)
 async def get_attendance_records(
     request: Request,
-    student_id: str = Query(..., description="Filter by student_id"),
-    subject: str = Query(None, description="Filter by subject"),
-    lesson_date: str = Query(None, description="Filter by lesson date (YYYY-MM-DD)"),
+    student_id: Optional[str] = Query(None, description="Filter by student_id"),  # <-- optional
+    subject: Optional[str] = Query(None, description="Filter by subject"),       # <-- optional
+    date: Optional[str] = Query(                                                 # <-- optional
+        None, description="Filter by date (YYYY-MM-DD). Maps to 'lesson_date'."
+    ),
 ):
     """
-    Retrieve attendance records from MongoDB, filtered by student_id, subject, and lesson_date.
+    Retrieve attendance records from MongoDB.
+    - All filters are optional.
+    - If no filters are provided, returns all records.
+    - Supported filters: student_id, subject (case-insensitive), date (maps to lesson_date).
     """
     client = get_mongo_client(request)
     ensure_mongo_available(client, request)
     db = client[DB_NAME]
     att_col = db[COL_NAME]
 
-    query = {"student_id": student_id}
+    query = {}
+    if student_id:
+        query["student_id"] = student_id
     if subject:
-        query["subject"] = subject
-    if lesson_date:
-        query["lesson_date"] = lesson_date
+        # case-insensitive substring match
+        query["subject"] = {"$regex": subject, "$options": "i"}
+    if date:
+        query["lesson_date"] = date
 
     records = list(att_col.find(query))
-
-    for rec in records:
-        rec["_id"] = str(rec["_id"])
-        if "time_in" in rec:
-            rec["time_in"] = str(rec["time_in"])
-        if "time_out" in rec:
-            rec["time_out"] = str(rec["time_out"])
-        if "created_at" in rec:
-            rec["created_at"] = str(rec["created_at"])
-        if "updated_at" in rec:
-            rec["updated_at"] = str(rec["updated_at"])
-
-    return {"records": records}
+    # Ensure ObjectId/datetime are JSON serializable
+    encoded = jsonable_encoder(records, custom_encoder={ObjectId: str})
+    return {"records": encoded}
