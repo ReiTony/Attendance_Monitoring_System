@@ -14,42 +14,40 @@ class PydanticConfig:
 
 class BreakRecord(BaseModel):
     """Schema for a single break period within an attendance record."""
-    start: datetime.datetime
-    end: datetime.datetime
-    duration_seconds: int
-    duration: str
+    start: Optional[datetime.datetime] = None
+    end: Optional[datetime.datetime] = None
+    duration_seconds: Optional[int] = None
+    duration: Optional[str] = None
 
 class AttendanceResponse(BaseModel):
     """
     Schema for a single attendance record returned by the API.
     This mirrors the structure of the `Attendance` Beanie Document.
     """
-    id: str = Field(..., alias="_id", description="The unique MongoDB document ID.")
-    
-    # --- Student and Class Information ---
-    student_id: str
-    student_name: str
-    rfid_uid: str
-    section: str
-    subject: str
-    lesson_date: datetime.date
-    
-    # --- Timestamps and Duration ---
-    time_in: Optional[datetime.datetime] = None
-    time_out: Optional[datetime.datetime] = None
-    duration_seconds: Optional[float] = None
-    breaks: List[BreakRecord] = []
+    id: Optional[str] = Field(None, alias="_id")
+    # Student and class info
+    student_id: Optional[str] = None
+    student_name: Optional[str] = None
+    section: Optional[str] = None
+    subject: Optional[str] = None
+    lesson_date: Optional[str] = None  
 
-    # --- Status Flags ---
-    is_present: bool
-    is_late: bool
-    
-    # --- Metadata ---
+    # Timestamps and breaks
+    time_in: Optional[str] = None
+    time_out: Optional[str] = None
+    total_break_seconds: Optional[int] = None
+    breaks: List[BreakRecord] = Field(default_factory=list)
+
+    # Status flags in your docs
+    status: Optional[str] = None
+    late: Optional[bool] = None
+    left_early: Optional[bool] = None
+
+    # Metadata
+    remarks: Optional[str] = None
     from_device: Optional[str] = None
-    
-    # --- Timestamps from Beanie's TimeStamp mixin ---
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    created_at: Optional[datetime.datetime] = None
+    updated_at: Optional[datetime.datetime] = None
 
     class Config(PydanticConfig):
         pass
