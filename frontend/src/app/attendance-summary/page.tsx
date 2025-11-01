@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Button, TextInput, Title, Stack, Group } from "@mantine/core";
+import {
+  Box,
+  Button,
+  Title,
+  Stack,
+  Group,
+  NativeSelect,
+} from "@mantine/core";
 import { useAttendanceLogs } from "@/hooks/attendance/useAttendanceSummary";
 import { AttendanceLogsTable } from "@/app/components/AttendanceLogsTable";
 import { useRouter } from "next/navigation";
@@ -28,12 +35,15 @@ export default function AttendanceSummary() {
         </Group>
 
         <Box style={{ maxWidth: 400 }}>
-          <TextInput
+          <NativeSelect
             label="Section"
-            placeholder="Enter section"
             value={section}
             onChange={(event) => setSection(event.currentTarget.value)}
             mb="md"
+            data={[
+              { value: "", label: "Select a section" },
+              { value: "ICT12A", label: "ICT12A" },
+            ]}
           />
           <Button
             onClick={handleFetchSummary}

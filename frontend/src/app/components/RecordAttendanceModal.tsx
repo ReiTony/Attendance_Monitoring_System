@@ -1,21 +1,18 @@
 "use client";
 
-import { useTeacher } from "@/hooks/useTeacher";
-import AppShell from "../components/core/AppShell";
-import {
-  TextInput,
-  Button,
-  Text,
-  Alert,
-  Stack,
-  Center,
-  Container,
-} from "@mantine/core";
+import { Modal, Button, Stack, TextInput, Alert, Text } from "@mantine/core";
 import { useRfid } from "@/hooks/rfid/useRfid";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function RecordAttendance() {
-  const { teacherWithAccessToken } = useTeacher();
+interface RecordAttendanceModalProps {
+  opened: boolean;
+  onClose: () => void;
+}
+
+const RecordAttendanceModal = ({
+  opened,
+  onClose,
+}: RecordAttendanceModalProps) => {
   const { record, attendanceRecord, success, loading, error } = useRfid();
   const [rfidValue, setRfidValue] = useState("");
 
@@ -27,32 +24,25 @@ export default function RecordAttendance() {
     }
   };
 
-  if (!teacherWithAccessToken) {
-    return (
-      <Center>
-        <Text>Not Logged In</Text>
-      </Center>
-    );
-  }
+  // Clear messages when modal closes
+  useEffect(() => {
+    if (!opened) {
+      setRfidValue("");
+    }
+  }, [opened]);
 
   return (
-    <AppShell teacher={teacherWithAccessToken.teacher}>
-      <Container size={"xl"}>
+    <Modal opened={opened} onClose={onClose} title="Record Attendance" centered>
+      <form onSubmit={handleSubmit}>
         <Stack>
-          <form onSubmit={handleSubmit}>
-            <Stack>
-              <TextInput
-                label="RFID"
-                value={rfidValue}
-                onChange={(e) => setRfidValue(e.currentTarget.value)}
-                placeholder="Enter RFID"
-                required
-              />
-              <Button type="submit" loading={loading}>
-                Record Attendance
-              </Button>
-            </Stack>
-          </form>
+          <TextInput
+            label="RFID"
+            value={rfidValue}
+            onChange={(e) => setRfidValue(e.currentTarget.value)}
+            placeholder="Enter RFID"
+            required
+            autoFocus
+          />
 
           {success && (
             <Alert color="green" title="Success">
@@ -84,8 +74,14 @@ export default function RecordAttendance() {
               {error}
             </Alert>
           )}
+
+          <Button type="submit" loading={loading} fullWidth>
+            Record Attendance
+          </Button>
         </Stack>
-      </Container>
-    </AppShell>
+      </form>
+    </Modal>
   );
-}
+};
+
+export default RecordAttendanceModal;
