@@ -1,4 +1,4 @@
-import { AttendanceRecordsApi } from "@/domain/attendanceRecord";
+import { AttendanceRecordListApi } from "@/domain/attendanceRecord";
 import { ApiError } from "@/utils/apiError";
 import { err, ok, Result } from "@/utils/result";
 import axios from "axios";
@@ -7,7 +7,7 @@ export const getAttendanceRecords = async (
   studentId: string,
   subject: string | null,
   date: string | null
-): Promise<Result<AttendanceRecordsApi>> => {
+): Promise<Result<AttendanceRecordListApi>> => {
   try {
     const response = await axios.get(
       `https://attendance-monitoring-system-65w1.onrender.com/attendance/records`,
@@ -32,7 +32,7 @@ export const getAttendanceRecords = async (
       return err(error);
     }
 
-    const data: AttendanceRecordsApi = response.data;
+    const data: AttendanceRecordListApi = response.data;
 
     console.log(data);
 

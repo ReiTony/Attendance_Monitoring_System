@@ -1,26 +1,28 @@
-export type AttendanceRecordsApi = {
-  records: {
-    _id: string;
-    student_id: string;
-    student_name: string;
-    section: string;
-    subject: string;
-    lesson_date: string;
-    time_in: string;
-    time_out: string;
-    total_break_seconds: number;
-    breaks: {
-      start: string;
-      end: string;
-      duration_seconds: number;
-      duration: string;
-    }[];
-    status: string;
-    late: boolean;
-    left_early: boolean;
-    remarks: string;
-    from_device: string;
-    created_at: string;
-    updated_at: string;
+export type AttendanceRecordApi = {
+  _id: string | null;
+  student_id: string | null;
+  student_name: string | null;
+  section: string | null;
+  subject: string | null;
+  lesson_date: string | null;
+  time_in: string | null;
+  time_out: string | null;
+  total_break_seconds: number;
+  breaks: {
+    start: string | null;
+    end: string | null;
+    duration_seconds: number;
+    duration: string | null;
   }[];
+  status: string | null;
+  late: boolean;
+  left_early: boolean;
+  remarks: string | null;
+  from_device: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+export type AttendanceRecordListApi = {
+  records: AttendanceRecordApi[];
 };
