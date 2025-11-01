@@ -9,7 +9,6 @@ import {
   Alert,
   Stack,
   Center,
-  LoadingOverlay,
   Container,
 } from "@mantine/core";
 import { useRfid } from "@/hooks/rfid/useRfid";
@@ -17,7 +16,7 @@ import { useState } from "react";
 
 export default function RecordAttendance() {
   const { teacherWithAccessToken } = useTeacher();
-  const { record, success, loading, error } = useRfid();
+  const { record, attendanceRecord, success, loading, error } = useRfid();
   const [rfidValue, setRfidValue] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,14 +26,6 @@ export default function RecordAttendance() {
       setRfidValue(""); // Clear input after submission
     }
   };
-
-  if (loading) {
-    return (
-      <Center w={"100%"} h={"100vh"}>
-        <LoadingOverlay />
-      </Center>
-    );
-  }
 
   if (!teacherWithAccessToken) {
     return (
@@ -66,6 +57,25 @@ export default function RecordAttendance() {
           {success && (
             <Alert color="green" title="Success">
               {success}
+            </Alert>
+          )}
+
+          {attendanceRecord && (
+            <Alert color="blue" title="Attendance Record">
+              <Stack gap="xs">
+                <Text size="sm">
+                  <strong>Student:</strong> {attendanceRecord.studentName}
+                </Text>
+                <Text size="sm">
+                  <strong>Status:</strong> {attendanceRecord.status}
+                </Text>
+                <Text size="sm">
+                  <strong>Time:</strong>{" "}
+                  {attendanceRecord.timeIn
+                    ? new Date(attendanceRecord.timeIn).toLocaleString()
+                    : "N/A"}
+                </Text>
+              </Stack>
             </Alert>
           )}
 
