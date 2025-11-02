@@ -4,7 +4,7 @@ import { getAttendanceLogs } from "@/services/attendanceLogsService";
 import { useCallback, useEffect, useState } from "react";
 import { useTeacher } from "@/hooks/useTeacher";
 
-export function useAttendanceLogs() {
+export function useAttendanceLogs(date: string | null) {
   const { teacherWithAccessToken } = useTeacher();
   const [attendanceLogs, setAttendanceLogs] =
     useState<AttendanceLogListView | null>(null);
@@ -17,6 +17,7 @@ export function useAttendanceLogs() {
     console.log("Fetching attendanceLogs");
     const result = await getAttendanceLogs(
       teacherWithAccessToken.teacher.section,
+      date
     );
 
     if ("error" in result) {
@@ -32,19 +33,17 @@ export function useAttendanceLogs() {
             section: log.section,
             totalLates: log.total_lates,
             totalAbsences: log.total_absences,
-          }),
+          })
         ),
       };
       setAttendanceLogs(dataView);
     }
     setLoading(false);
-  }, [teacherWithAccessToken]);
+  }, [teacherWithAccessToken, date]);
 
   useEffect(() => {
-    if (!attendanceLogs) {
-      load();
-    }
-  }, [attendanceLogs, load]);
+    load();
+  }, [load]);
 
   return {
     attendanceLogs,

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Center,
   LoadingOverlay,
@@ -14,12 +15,15 @@ import { useAttendanceLogs } from "@/hooks/useAttendanceLogs";
 import AttendanceLogsTable from "@/app/components/AttendanceLogsTable";
 
 const AttendanceLogs = () => {
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const { teacherWithAccessToken, loading: teacherLoading } = useTeacher();
-  const { attendanceLogs, loading: logsLoading, error } = useAttendanceLogs();
+  const {
+    attendanceLogs,
+    loading: logsLoading,
+    error,
+  } = useAttendanceLogs(selectedDate);
 
-  const loading = teacherLoading || logsLoading;
-
-  if (loading) {
+  if (teacherLoading) {
     return (
       <Center w={"100%"} h={"100vh"}>
         <LoadingOverlay />
@@ -61,6 +65,8 @@ const AttendanceLogs = () => {
         <AttendanceLogsTable
           attendanceLogs={attendanceLogs}
           loading={logsLoading}
+          selectedDate={selectedDate}
+          onDateChange={setSelectedDate}
         />
       </Container>
     </AppShell>

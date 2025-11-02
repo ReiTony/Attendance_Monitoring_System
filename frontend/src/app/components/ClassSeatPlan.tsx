@@ -5,7 +5,6 @@ import {
   Avatar,
   Box,
   Center,
-  Grid,
   LoadingOverlay,
   Paper,
   Stack,
@@ -57,12 +56,23 @@ export default function ClassSeatPlan() {
           Class Seat Plan
         </Text>
 
-        <Box style={{ overflowX: "auto" }}>
+        <Box style={{ overflowX: "auto", width: "100%" }}>
           <Stack gap="md">
             {seatGrid.slice(1).map((row, rowIndex) => (
-              <Grid key={rowIndex + 1} gutter="md" justify="center">
+              <Box
+                key={rowIndex + 1}
+                style={{
+                  display: "flex",
+                  gap: "1rem",
+                  justifyContent: "center",
+                  flexWrap: "nowrap",
+                  minWidth: "fit-content",
+                  paddingLeft: "1rem",
+                  paddingRight: "1rem",
+                }}
+              >
                 {row.slice(1).map((seat, colIndex) => (
-                  <Grid.Col key={colIndex + 1} span="content">
+                  <Box key={colIndex + 1}>
                     {seat ? (
                       <Link
                         href={`/student/${seat.studentId}`}
@@ -122,9 +132,9 @@ export default function ClassSeatPlan() {
                         </Text>
                       </Paper>
                     )}
-                  </Grid.Col>
+                  </Box>
                 ))}
-              </Grid>
+              </Box>
             ))}
           </Stack>
         </Box>
