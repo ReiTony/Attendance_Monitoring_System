@@ -15,13 +15,14 @@ import { useAttendanceLogs } from "@/hooks/useAttendanceLogs";
 import AttendanceLogsTable from "@/app/components/AttendanceLogsTable";
 
 const AttendanceLogs = () => {
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
   const { teacherWithAccessToken, loading: teacherLoading } = useTeacher();
   const {
     attendanceLogs,
     loading: logsLoading,
     error,
-  } = useAttendanceLogs(selectedDate);
+  } = useAttendanceLogs(startDate, endDate);
 
   if (teacherLoading) {
     return (
@@ -65,8 +66,10 @@ const AttendanceLogs = () => {
         <AttendanceLogsTable
           attendanceLogs={attendanceLogs}
           loading={logsLoading}
-          selectedDate={selectedDate}
-          onDateChange={setSelectedDate}
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
         />
       </Container>
     </AppShell>

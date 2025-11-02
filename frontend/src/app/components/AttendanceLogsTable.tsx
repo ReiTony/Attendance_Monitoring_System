@@ -15,15 +15,19 @@ import { AttendanceLogListView } from "@/dto/attendanceLogsView";
 interface AttendanceLogsTableProps {
   attendanceLogs: AttendanceLogListView | null;
   loading: boolean;
-  selectedDate: string | null;
-  onDateChange: (date: string | null) => void;
+  startDate: string | null;
+  endDate: string | null;
+  onStartDateChange: (date: string | null) => void;
+  onEndDateChange: (date: string | null) => void;
 }
 
 export const AttendanceLogsTable = ({
   attendanceLogs,
   loading,
-  selectedDate,
-  onDateChange,
+  startDate,
+  endDate,
+  onStartDateChange,
+  onEndDateChange,
 }: AttendanceLogsTableProps) => {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -52,8 +56,8 @@ export const AttendanceLogsTable = ({
           style={{ flex: 1 }}
         />
         <DateInput
-          placeholder="Filter by date"
-          value={selectedDate ? new Date(selectedDate) : null}
+          placeholder="Start date"
+          value={startDate ? new Date(startDate) : null}
           onChange={(value) => {
             if (value) {
               // Handle both Date object and string
@@ -61,9 +65,26 @@ export const AttendanceLogsTable = ({
                 typeof value === "string"
                   ? value
                   : (value as unknown as Date).toISOString().split("T")[0];
-              onDateChange(dateStr);
+              onStartDateChange(dateStr);
             } else {
-              onDateChange(null);
+              onStartDateChange(null);
+            }
+          }}
+          clearable
+        />
+        <DateInput
+          placeholder="End date"
+          value={endDate ? new Date(endDate) : null}
+          onChange={(value) => {
+            if (value) {
+              // Handle both Date object and string
+              const dateStr =
+                typeof value === "string"
+                  ? value
+                  : (value as unknown as Date).toISOString().split("T")[0];
+              onEndDateChange(dateStr);
+            } else {
+              onEndDateChange(null);
             }
           }}
           clearable

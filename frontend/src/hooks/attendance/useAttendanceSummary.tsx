@@ -4,7 +4,10 @@ import { AttendanceLog } from "@/domain/attendanceLog";
 import { getAttendanceLogs } from "@/services/attendanceLogsService";
 import { useCallback, useState } from "react";
 
-export function useAttendanceSummary(date: string | null) {
+export function useAttendanceSummary(
+  startDate: string | null,
+  endDate: string | null
+) {
   const [attendanceSummary, setAttendanceSummary] =
     useState<AttendanceLogListView | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -14,7 +17,7 @@ export function useAttendanceSummary(date: string | null) {
     async (section: string) => {
       setLoading(true);
       console.log("Fetching attendanceLogs");
-      const result = await getAttendanceLogs(section, date);
+      const result = await getAttendanceLogs(section, startDate, endDate);
 
       if ("error" in result) {
         setError(result.error.message);
@@ -36,7 +39,7 @@ export function useAttendanceSummary(date: string | null) {
       }
       setLoading(false);
     },
-    [date]
+    [startDate, endDate]
   );
 
   return {

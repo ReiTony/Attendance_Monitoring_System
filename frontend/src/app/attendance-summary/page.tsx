@@ -8,9 +8,10 @@ import { useRouter } from "next/navigation";
 
 export default function AttendanceSummary() {
   const [section, setSection] = useState("");
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
   const { getAttendanceSummary, attendanceLogs, loading, error } =
-    useAttendanceSummary(selectedDate);
+    useAttendanceSummary(startDate, endDate);
   const router = useRouter();
 
   const handleFetchSummary = () => {
@@ -53,8 +54,10 @@ export default function AttendanceSummary() {
         <AttendanceLogsTable
           attendanceLogs={attendanceLogs}
           loading={loading}
-          selectedDate={selectedDate}
-          onDateChange={setSelectedDate}
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
         />
       </Stack>
     </Box>

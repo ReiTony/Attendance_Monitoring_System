@@ -5,7 +5,8 @@ import axios from "axios";
 
 export const getAttendanceLogs = async (
   section: string,
-  date: string | null = null
+  start_date: string | null,
+  end_date: string | null
 ): Promise<Result<AttendanceLogApi>> => {
   try {
     const response = await axios.get(
@@ -13,7 +14,8 @@ export const getAttendanceLogs = async (
       {
         params: {
           section,
-          lesson_date: date,
+          date_from: start_date,
+          date_to: end_date,
         },
       }
     );
