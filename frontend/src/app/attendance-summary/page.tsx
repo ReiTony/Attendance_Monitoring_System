@@ -1,22 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Box,
-  Button,
-  Title,
-  Stack,
-  Group,
-  NativeSelect,
-} from "@mantine/core";
-import { useAttendanceLogs } from "@/hooks/attendance/useAttendanceSummary";
+import { Box, Button, Title, Stack, Group, NativeSelect } from "@mantine/core";
+import { useAttendanceSummary } from "@/hooks/attendance/useAttendanceSummary";
 import { AttendanceLogsTable } from "@/app/components/AttendanceLogsTable";
 import { useRouter } from "next/navigation";
 
 export default function AttendanceSummary() {
   const [section, setSection] = useState("");
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const { getAttendanceSummary, attendanceLogs, loading, error } =
-    useAttendanceLogs();
+    useAttendanceSummary(selectedDate);
   const router = useRouter();
 
   const handleFetchSummary = () => {
@@ -59,6 +53,8 @@ export default function AttendanceSummary() {
         <AttendanceLogsTable
           attendanceLogs={attendanceLogs}
           loading={loading}
+          selectedDate={selectedDate}
+          onDateChange={setSelectedDate}
         />
       </Stack>
     </Box>
