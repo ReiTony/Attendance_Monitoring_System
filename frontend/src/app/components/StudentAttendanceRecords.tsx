@@ -157,7 +157,6 @@ const StudentAttendanceRecords = ({
                     <Table.Th style={{ width: "100px" }}>Time In</Table.Th>
                     <Table.Th style={{ width: "100px" }}>Time Out</Table.Th>
                     <Table.Th style={{ width: "100px" }}>Status</Table.Th>
-                    <Table.Th style={{ width: "80px" }}>Late</Table.Th>
                     <Table.Th style={{ width: "100px" }}>Left Early</Table.Th>
                     <Table.Th style={{ width: "100px" }}>Breaks</Table.Th>
                     <Table.Th style={{ width: "250px" }}>Remarks</Table.Th>
@@ -187,15 +186,6 @@ const StudentAttendanceRecords = ({
                       </Table.Td>
                       <Table.Td style={{ width: "100px" }}>
                         {getStatusBadge(record.status)}
-                      </Table.Td>
-                      <Table.Td style={{ width: "80px" }}>
-                        {record.late ? (
-                          <Badge color="orange" size="sm">
-                            Yes
-                          </Badge>
-                        ) : (
-                          <Text size="sm">No</Text>
-                        )}
                       </Table.Td>
                       <Table.Td style={{ width: "100px" }}>
                         {record.leftEarly ? (
