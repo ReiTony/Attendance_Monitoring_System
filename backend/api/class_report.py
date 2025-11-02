@@ -25,6 +25,9 @@ async def get_attendance_summary(
     request: Request,
     section: Optional[str] = Query(None, description="Filter by section"),
     subject: Optional[str] = Query(None, description="Filter by subject"),
+    lesson_date: Optional[str] = Query(None, description="Exact lesson date (YYYY-MM-DD)"),
+    date_from: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
+    date_to: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
     debug: bool = Query(False, description="If true return intermediate per-subject aggregation for debugging")
 ):
     client = get_mongo_client(request)
@@ -42,6 +45,26 @@ async def get_attendance_summary(
     if subject:
         match_stage["subject"] = {"$regex": subject, "$options": "i"}
         report_details = f"{report_details.replace('Summary', 'Summary for Subject')} {subject}"
+    if lesson_date:
+        match_stage["lesson_date"] = lesson_date
+        report_details = f"{report_details} on {lesson_date}"
+    else:
+        date_filter: Dict[str, Any] = {}
+        if date_from:
+            date_filter["$gte"] = date_from
+        if date_to:
+            date_filter["$lte"] = date_to
+
+        if date_filter:
+            match_stage["lesson_date"] = date_filter
+
+            if date_from and date_to:
+                report_details = f"{report_details} ({date_from} to {date_to})"
+            elif date_from:
+                report_details = f"{report_details} (from {date_from})"
+            elif date_to:
+                report_details = f"{report_details} (until {date_to})"
+
     if match_stage:
         pipeline.append({"$match": match_stage})
 
