@@ -9,16 +9,21 @@ import {
   Group,
   Loader,
 } from "@mantine/core";
+import { DateInput } from "@mantine/dates";
 import { AttendanceLogListView } from "@/dto/attendanceLogsView";
 
 interface AttendanceLogsTableProps {
   attendanceLogs: AttendanceLogListView | null;
   loading: boolean;
+  selectedDate: string | null;
+  onDateChange: (date: string | null) => void;
 }
 
 export const AttendanceLogsTable = ({
   attendanceLogs,
   loading,
+  selectedDate,
+  onDateChange,
 }: AttendanceLogsTableProps) => {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -45,6 +50,23 @@ export const AttendanceLogsTable = ({
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.currentTarget.value)}
           style={{ flex: 1 }}
+        />
+        <DateInput
+          placeholder="Filter by date"
+          value={selectedDate ? new Date(selectedDate) : null}
+          onChange={(value) => {
+            if (value) {
+              // Handle both Date object and string
+              const dateStr =
+                typeof value === "string"
+                  ? value
+                  : (value as unknown as Date).toISOString().split("T")[0];
+              onDateChange(dateStr);
+            } else {
+              onDateChange(null);
+            }
+          }}
+          clearable
         />
       </Group>
 

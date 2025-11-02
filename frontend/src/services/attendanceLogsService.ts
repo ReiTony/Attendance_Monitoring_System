@@ -5,10 +5,17 @@ import axios from "axios";
 
 export const getAttendanceLogs = async (
   section: string,
+  date: string | null = null
 ): Promise<Result<AttendanceLogApi>> => {
   try {
     const response = await axios.get(
-      `https://attendance-monitoring-system-65w1.onrender.com/reports/attendance-summary?section=${section}`,
+      `https://attendance-monitoring-system-65w1.onrender.com/reports/attendance-summary`,
+      {
+        params: {
+          section,
+          lesson_date: date,
+        },
+      }
     );
 
     if (!response.data) {
